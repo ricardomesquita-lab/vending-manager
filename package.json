@@ -1,0 +1,32 @@
+{
+  "name": "vending-manager",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "node node_modules/next/dist/bin/next dev",
+    "build": "node node_modules/next/dist/bin/next build",
+    "start": "node node_modules/next/dist/bin/next start",
+    "lint": "node node_modules/eslint/bin/eslint.js .",
+    "typecheck": "node node_modules/typescript/bin/tsc --noEmit",
+    "test": "node --test tests/*.test.mjs"
+  },
+  "dependencies": {
+    "@supabase/ssr": "^0.12.7",
+    "@supabase/supabase-js": "^2.118.0",
+    "lucide-react": "^1.66.0",
+    "next": "16.4.3",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.3.7",
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "eslint": "^9.30.0",
+    "eslint-config-next": "16.4.3",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^5.9.3"
+  }
+}

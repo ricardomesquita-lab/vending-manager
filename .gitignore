@@ -1,0 +1,13 @@
+node_modules/
+.pnpm-cache/
+.pnpm-store/
+/v11/
+/work/v11/
+/work/vercel-cli/
+.next/
+.env*
+!.env.example
+*.tsbuildinfo
+next-env.d.ts
+dist/
+coverage/
