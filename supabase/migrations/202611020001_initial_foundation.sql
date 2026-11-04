@@ -72,7 +72,7 @@ grant execute on function public.current_user_role() to authenticated;
 
 insert into public.machines (code, name, location)
 values
-  ('M1', 'Máquina 1', ''),
-  ('M2', 'Máquina 2', ''),
-  ('M3', 'Máquina 3', '')
+  ('M1', 'Máquina Café', ''),
+  ('M2', 'Máquina Castanha', ''),
+  ('M3', 'Máquina Preta', '')
 on conflict (code) do nothing;

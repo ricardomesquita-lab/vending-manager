@@ -37,8 +37,6 @@ export function PurchaseForm({ suppliers, products }: { suppliers: SupplierChoic
   }}>
     <div className="grid gap-4 sm:grid-cols-3">
       <label className="text-sm font-medium sm:col-span-1">Fornecedor<select name="supplier_id" required defaultValue="" className="field"><option value="" disabled>Escolher fornecedor</option>{suppliers.map((supplier) => <option key={supplier.id} value={supplier.id}>{supplier.name}</option>)}</select></label>
-      <label className="text-sm font-medium">Número da fatura<input name="invoice_number" required maxLength={100} className="field" /></label>
-      <label className="text-sm font-medium">Data da fatura<input name="purchase_date" type="date" required className="field" /></label>
     </div>
     <div className="space-y-3">
       {lines.map((line, index) => <div key={index} className="grid gap-3 rounded-xl bg-slate-50 p-4 sm:grid-cols-6">

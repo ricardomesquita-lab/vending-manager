@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { randomUUID } from "node:crypto";
 import { createClient } from "@/lib/supabase/server";
 
 export async function registerPurchase(formData: FormData): Promise<string | null> {
@@ -17,8 +18,8 @@ export async function registerPurchase(formData: FormData): Promise<string | nul
   if (!Array.isArray(lines) || lines.length === 0 || lines.length > 100) return "Adicione entre um e cem produtos à compra.";
   const { data, error } = await supabase.rpc("register_purchase", {
     p_supplier_id: String(formData.get("supplier_id") ?? ""),
-    p_invoice_number: String(formData.get("invoice_number") ?? "").trim(),
-    p_purchase_date: String(formData.get("purchase_date") ?? ""),
+    p_invoice_number: `COMPRA-${randomUUID()}`,
+    p_purchase_date: new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Lisbon", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date()),
     p_lines: lines,
   });
   if (error) return error.code === "23505" ? "Esta fatura já foi registada para este fornecedor." : "A compra não foi registada. Confirme fornecedor, linhas e migration da Fase 2.";

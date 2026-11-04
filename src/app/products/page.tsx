@@ -20,7 +20,7 @@ export default async function ProductsPage() {
     supabase.from("machines").select("id,name").eq("status", "active").order("name"),
     supabase.from("machine_product_prices").select("id,sale_price_gross,machines(name),products(name)").order("created_at", { ascending: false }),
     supabase.from("product_price_history").select("id,sale_price_gross,changed_at,machines(name),products(name)").order("changed_at", { ascending: false }).limit(50),
-    supabase.from("products").select("id,barcode,name,category_id,description,preferred_supplier_id,vat_rate,sale_price_gross,average_cost_ex_vat,warehouse_minimum,machine_minimum,active,product_categories(name)").order("name"),
+    supabase.from("products").select("id,name,category_id,description,preferred_supplier_id,vat_rate,sale_price_gross,average_cost_ex_vat,warehouse_minimum,machine_minimum,active,product_categories(name)").order("name"),
   ]);
   const isAdmin = profile?.role === "administrator";
   const activeProducts = (products ?? []).filter((product) => product.active).map(({ id, name }) => ({ id, name }));

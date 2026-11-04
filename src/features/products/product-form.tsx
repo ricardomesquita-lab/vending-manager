@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { createProduct, updateProduct } from "@/features/products/actions";
 
 type Choice = { id: string; name: string };
-type ExistingProduct = { id: string; barcode: string | null; name: string; category_id: string; description: string; preferred_supplier_id: string | null; vat_rate: number; sale_price_gross: number; average_cost_ex_vat: number; warehouse_minimum: number; machine_minimum: number; active: boolean };
+type ExistingProduct = { id: string; name: string; category_id: string; description: string; preferred_supplier_id: string | null; vat_rate: number; sale_price_gross: number; average_cost_ex_vat: number; warehouse_minimum: number; machine_minimum: number; active: boolean };
 
 export function ProductForm({ categories, suppliers, product }: { categories: Choice[]; suppliers: Choice[]; product?: ExistingProduct }) {
   const [error, setError] = useState("");
@@ -16,7 +16,6 @@ export function ProductForm({ categories, suppliers, product }: { categories: Ch
     }}>
       <label className="text-sm font-medium">Nome<input name="name" required maxLength={150} defaultValue={product?.name} className="field" /></label>
       <label className="text-sm font-medium">Categoria<select name="category_id" required defaultValue={product?.category_id ?? ""} className="field"><option value="" disabled>Escolher categoria</option>{categories.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
-      <label className="text-sm font-medium">Código de barras (opcional)<input name="barcode" maxLength={64} defaultValue={product?.barcode ?? ""} className="field" /></label>
       <label className="text-sm font-medium">Fornecedor preferencial<select name="preferred_supplier_id" defaultValue={product?.preferred_supplier_id ?? ""} className="field"><option value="">Sem fornecedor definido</option>{suppliers.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
       {!product && <label className="text-sm font-medium">Custo inicial sem IVA (€)<input name="average_cost_ex_vat" type="number" min="0" step="0.0001" defaultValue="0" required className="field" /></label>}
       {product && <p className="text-sm text-[var(--muted)]">Custo médio atual: {product.average_cost_ex_vat.toLocaleString("pt-PT", { minimumFractionDigits: 2, maximumFractionDigits: 4 })} € · Atualizado pelas compras.</p>}

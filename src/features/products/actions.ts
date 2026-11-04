@@ -25,7 +25,6 @@ export async function createProduct(formData: FormData): Promise<string | null> 
 
   const { error } = await supabase.from("products").insert({
     internal_code: `AUTO-${randomUUID()}`,
-    barcode: String(formData.get("barcode") ?? "").trim() || null,
     name,
     category_id: categoryId,
     description: String(formData.get("description") ?? "").trim(),
@@ -59,7 +58,6 @@ export async function updateProduct(productId: string, formData: FormData): Prom
     return "Verifique o nome, categoria, preço, IVA e stocks mínimos.";
   }
   const { error } = await supabase.from("products").update({
-    barcode: String(formData.get("barcode") ?? "").trim() || null,
     name,
     category_id: categoryId,
     description: String(formData.get("description") ?? "").trim(),

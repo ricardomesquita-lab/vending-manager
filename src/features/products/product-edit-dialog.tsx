@@ -6,7 +6,6 @@ import { ProductForm } from "@/features/products/product-form";
 type Choice = { id: string; name: string };
 type Product = {
   id: string;
-  barcode: string | null;
   name: string;
   category_id: string;
   description: string;
