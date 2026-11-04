@@ -19,6 +19,14 @@ type Mode = "sale" | "replenishment";
 type BasketLine = { slot_id: string; product_id: string; name: string; selection_code: string; quantity: number; unit_price: number };
 const euro = new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR" });
 const localToday = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Lisbon", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+const shelfCodes = [
+  ["11", "13", "15", "17"],
+  ["21", "22", "23", "24", "25", "26"],
+  ["31", "33", "35", "37"],
+  ["41", "43", "45", "47"],
+  ["51", "52", "53", "54", "55", "56", "57", "58"],
+  ["61", "62", "63", "64", "65", "66", "67"],
+];
 
 export function MachineSlotMap({
   machineId,
@@ -46,17 +54,13 @@ export function MachineSlotMap({
   const [notice, setNotice] = useState("");
   const [pending, startTransition] = useTransition();
   const slotByCode = useMemo(() => new Map(slots.map((slot) => [slot.selection_code, slot])), [slots]);
-  const shelfRows = useMemo(() => {
-    let start = 0;
-    return [4, 7, 4, 4, 8, 8].map((size) => {
-      const row = slots.slice(start, start + size);
-      start += size;
-      return row;
-    });
-  }, [slots]);
+  const shelfRows = shelfCodes.map((codes) => codes.map((code) => slotByCode.get(code) ?? null));
+  const visibleCodes = new Set(shelfCodes.flat());
+  const extraSlots = slots.filter((slot) => !visibleCodes.has(slot.selection_code));
+  const visibleSlots = shelfRows.flatMap((row) => row).filter((slot): slot is MachineSlot => Boolean(slot));
   const selected = slots.find((slot) => slot.id === selectedId) ?? null;
-  const configured = slots.filter((slot) => slot.product_id && slot.active).length;
-  const totalQuantity = slots.reduce((sum, slot) => sum + slot.quantity, 0);
+  const configured = visibleSlots.filter((slot) => slot.product_id && slot.active).length;
+  const totalQuantity = visibleSlots.reduce((sum, slot) => sum + slot.quantity, 0);
 
   function submit(action: (formData: FormData) => Promise<string | null>, values: Record<string, string>, success: string) {
     setError(""); setNotice("");
@@ -122,7 +126,7 @@ export function MachineSlotMap({
 
   return <section className="space-y-4">
     <div className="grid gap-3 sm:grid-cols-3">
-      <article className="rounded-xl border border-[var(--line)] bg-white p-4"><p className="text-xs text-[var(--muted)]">Posições configuradas</p><p className="mt-1 text-xl font-semibold">{configured} <span className="text-sm font-normal text-[var(--muted)]">/ {slots.length}</span></p></article>
+      <article className="rounded-xl border border-[var(--line)] bg-white p-4"><p className="text-xs text-[var(--muted)]">Posições configuradas</p><p className="mt-1 text-xl font-semibold">{configured} <span className="text-sm font-normal text-[var(--muted)]">/ 33</span></p></article>
       <article className="rounded-xl border border-[var(--line)] bg-white p-4"><p className="text-xs text-[var(--muted)]">Unidades na máquina</p><p className="mt-1 text-xl font-semibold">{totalQuantity}</p></article>
       <article className="rounded-xl border border-[var(--line)] bg-white p-4"><p className="text-xs text-[var(--muted)]">Como usar</p><p className="mt-1 text-sm">Toque numa posição para ver ou atualizar.</p></article>
     </div>
@@ -134,7 +138,7 @@ export function MachineSlotMap({
           <p className="mb-2 px-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500">Prateleira {rowIndex + 1}</p>
           <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${row.length}, minmax(0, 1fr))` }}>
         {row.map((slot, slotIndex) => {
-          const code = slot?.selection_code ?? `—${slotIndex}`;
+          const code = shelfCodes[rowIndex][slotIndex];
           const stocked = Boolean(slot?.product_id && slot.quantity > 0);
           const low = Boolean(slot?.product_id && slot.quantity > 0 && slot.quantity <= 2);
           const isSelected = slot?.id === selectedId;
@@ -152,6 +156,7 @@ export function MachineSlotMap({
         </div>)}
         <div className="rounded-lg bg-slate-800 px-4 py-3 text-center text-xs font-semibold text-white">RECOLHA DO PRODUTO</div>
       </div>
+      {extraSlots.length > 0 && <p className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900">Há posições antigas fora desta numeração ({extraSlots.map((slot) => slot.selection_code).join(", ")}). Foram mantidas para não perder stock ou histórico.</p>}
 
       <aside className="space-y-4 rounded-2xl border border-[var(--line)] bg-white p-5">
         {!selected ? <div><h3 className="font-semibold">Escolha uma posição</h3><p className="mt-2 text-sm text-[var(--muted)]">Toque numa posição do esquema para ver o produto e atualizar o stock.</p><div className="mt-3 flex flex-wrap gap-2 text-xs"><span className="rounded-full bg-emerald-100 px-2.5 py-1 text-emerald-900">Verde: stock disponível</span><span className="rounded-full bg-amber-100 px-2.5 py-1 text-amber-900">Amarelo: pouco stock</span><span className="rounded-full bg-slate-200 px-2.5 py-1 text-slate-800">Cinzento: sem produto ou sem stock</span></div>{!slots.length && <p className="mt-3 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">As posições ainda não foram criadas. Aplique a migration de posições da máquina.</p>}</div> : <>
