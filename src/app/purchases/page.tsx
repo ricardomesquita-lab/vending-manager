@@ -16,7 +16,7 @@ export default async function PurchasesPage() {
   const [{ data: profile }, { data: suppliers }, { data: products }, { data: purchases, error }] = await Promise.all([
     supabase.from("profiles").select("role").eq("id", user.id).maybeSingle(),
     supabase.from("suppliers").select("id,name").eq("active", true).order("name"),
-    supabase.from("products").select("id,name,internal_code,vat_rate,average_cost_ex_vat").eq("active", true).order("name"),
+    supabase.from("products").select("id,name,vat_rate,average_cost_ex_vat").eq("active", true).order("name"),
     supabase.from("purchases").select("id,invoice_number,purchase_date,total_inc_vat,suppliers(name)").order("purchase_date", { ascending: false }).limit(50),
   ]);
   const isAdmin = profile?.role === "administrator";

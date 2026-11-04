@@ -4,7 +4,7 @@ import { useMemo, useState, useTransition } from "react";
 import { registerSale } from "@/features/sales/actions";
 
 type Machine = { id: string; name: string };
-type Product = { id: string; name: string; internal_code: string; machine_id: string; quantity: number; vat_rate: number; price: number };
+type Product = { id: string; name: string; machine_id: string; quantity: number; vat_rate: number; price: number };
 type Line = { product_id: string; quantity: string };
 const euro = new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR" });
 const emptyLine = (): Line => ({ product_id: "", quantity: "1" });

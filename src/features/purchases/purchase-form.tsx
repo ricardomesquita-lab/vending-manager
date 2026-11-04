@@ -3,7 +3,7 @@
 import { useMemo, useState, useTransition } from "react";
 import { registerPurchase } from "@/features/purchases/actions";
 
-type ProductChoice = { id: string; name: string; internal_code: string; vat_rate: number; average_cost_ex_vat: number };
+type ProductChoice = { id: string; name: string; vat_rate: number; average_cost_ex_vat: number };
 type SupplierChoice = { id: string; name: string };
 type Line = { product_id: string; quantity: string; unit_cost_ex_vat: string; vat_rate: string; discount_percent: string };
 const euro = new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR" });
@@ -42,7 +42,7 @@ export function PurchaseForm({ suppliers, products }: { suppliers: SupplierChoic
     </div>
     <div className="space-y-3">
       {lines.map((line, index) => <div key={index} className="grid gap-3 rounded-xl bg-slate-50 p-4 sm:grid-cols-6">
-        <label className="text-sm font-medium sm:col-span-2">Produto<select required value={line.product_id} onChange={(event) => { const product = products.find((item) => item.id === event.target.value); updateLine(index, { product_id: event.target.value, vat_rate: String(product?.vat_rate ?? 23), unit_cost_ex_vat: String(product?.average_cost_ex_vat ?? 0) }); }} className="field"><option value="" disabled>Escolher produto</option>{products.map((product) => <option key={product.id} value={product.id}>{product.name} · {product.internal_code}</option>)}</select></label>
+        <label className="text-sm font-medium sm:col-span-2">Produto<select required value={line.product_id} onChange={(event) => { const product = products.find((item) => item.id === event.target.value); updateLine(index, { product_id: event.target.value, vat_rate: String(product?.vat_rate ?? 23), unit_cost_ex_vat: String(product?.average_cost_ex_vat ?? 0) }); }} className="field"><option value="" disabled>Escolher produto</option>{products.map((product) => <option key={product.id} value={product.id}>{product.name}</option>)}</select></label>
         <label className="text-sm font-medium">Quantidade<input required type="number" min="1" step="1" value={line.quantity} onChange={(event) => updateLine(index, { quantity: event.target.value })} className="field" /></label>
         <label className="text-sm font-medium">Custo s/ IVA<input required type="number" min="0" step="0.0001" value={line.unit_cost_ex_vat} onChange={(event) => updateLine(index, { unit_cost_ex_vat: event.target.value })} className="field" /></label>
         <label className="text-sm font-medium">IVA (%)<input required type="number" min="0" max="100" step="0.01" value={line.vat_rate} onChange={(event) => updateLine(index, { vat_rate: event.target.value })} className="field" /></label>

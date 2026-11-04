@@ -14,7 +14,7 @@ export default async function InventoryPage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
   const [{ data: products }, { data: machines }, { data: counts, error }] = await Promise.all([
-    supabase.from("products").select("id,name,internal_code").eq("active", true).order("name"),
+    supabase.from("products").select("id,name").eq("active", true).order("name"),
     supabase.from("machines").select("id,name").eq("status", "active").order("name"),
     supabase.from("inventory_counts").select("id,scope,status,machine_id,justification,created_at,confirmed_at,machines(name),profiles(full_name),inventory_count_lines(product_id,quantity_before,quantity_counted,quantity_difference,products(name))").order("created_at", { ascending: false }).limit(30),
   ]);

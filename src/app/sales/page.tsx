@@ -16,7 +16,7 @@ export default async function SalesPage() {
   const [{ data: profile }, { data: machines }, { data: stock }, { data: machinePrices }, { data: sales, error }] = await Promise.all([
     supabase.from("profiles").select("role").eq("id", user.id).maybeSingle(),
     supabase.from("machines").select("id,name").eq("status", "active").order("name"),
-    supabase.from("machine_stock").select("machine_id,product_id,quantity,products(id,name,internal_code,vat_rate,sale_price_gross,active)").gt("quantity", 0),
+    supabase.from("machine_stock").select("machine_id,product_id,quantity,products(id,name,vat_rate,sale_price_gross,active)").gt("quantity", 0),
     supabase.from("machine_product_prices").select("machine_id,product_id,sale_price_gross"),
     supabase.from("sales").select("id,machine_id,sale_date,status,total_inc_vat,total_ex_vat,total_cost_ex_vat,gross_margin,created_at,created_by,void_reason,machines(name),sale_lines(product_id,quantity,line_total_inc_vat,products(name))").order("created_at", { ascending: false }).limit(50),
   ]);
@@ -24,7 +24,7 @@ export default async function SalesPage() {
   const products = (stock ?? []).flatMap((row) => {
     const product = row.products?.[0];
     if (!product?.active) return [];
-    return [{ id: product.id, name: product.name, internal_code: product.internal_code, machine_id: row.machine_id, quantity: row.quantity, vat_rate: Number(product.vat_rate), price: overrides.get(`${row.machine_id}:${row.product_id}`) ?? Number(product.sale_price_gross) }];
+    return [{ id: product.id, name: product.name, machine_id: row.machine_id, quantity: row.quantity, vat_rate: Number(product.vat_rate), price: overrides.get(`${row.machine_id}:${row.product_id}`) ?? Number(product.sale_price_gross) }];
   });
   const isAdmin = profile?.role === "administrator";
 

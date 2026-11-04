@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { registerReplenishment } from "@/features/replenishments/actions";
 
-type Product = { id: string; name: string; internal_code: string; available: number };
+type Product = { id: string; name: string; available: number };
 type Machine = { id: string; name: string };
 type Line = { product_id: string; quantity: string };
 const emptyLine = (): Line => ({ product_id: "", quantity: "1" });

@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { createProduct, updateProduct } from "@/features/products/actions";
 
 type Choice = { id: string; name: string };
-type ExistingProduct = { id: string; internal_code: string; barcode: string | null; name: string; category_id: string; description: string; preferred_supplier_id: string | null; vat_rate: number; sale_price_gross: number; average_cost_ex_vat: number; warehouse_minimum: number; machine_minimum: number; active: boolean };
+type ExistingProduct = { id: string; barcode: string | null; name: string; category_id: string; description: string; preferred_supplier_id: string | null; vat_rate: number; sale_price_gross: number; average_cost_ex_vat: number; warehouse_minimum: number; machine_minimum: number; active: boolean };
 
 export function ProductForm({ categories, suppliers, product }: { categories: Choice[]; suppliers: Choice[]; product?: ExistingProduct }) {
   const [error, setError] = useState("");
@@ -14,7 +14,6 @@ export function ProductForm({ categories, suppliers, product }: { categories: Ch
       event.preventDefault(); setError(""); const formData = new FormData(event.currentTarget);
       startTransition(() => { void (async () => { const result = product ? await updateProduct(product.id, formData) : await createProduct(formData); if (result) setError(result); else window.location.reload(); })(); });
     }}>
-      <label className="text-sm font-medium">Código interno<input name="internal_code" required maxLength={50} defaultValue={product?.internal_code} className="field" /></label>
       <label className="text-sm font-medium">Nome<input name="name" required maxLength={150} defaultValue={product?.name} className="field" /></label>
       <label className="text-sm font-medium">Categoria<select name="category_id" required defaultValue={product?.category_id ?? ""} className="field"><option value="" disabled>Escolher categoria</option>{categories.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
       <label className="text-sm font-medium">Código de barras (opcional)<input name="barcode" maxLength={64} defaultValue={product?.barcode ?? ""} className="field" /></label>

@@ -14,10 +14,10 @@ export default async function ReplenishmentsPage() {
   if (!user) redirect("/login");
   const [{ data: machines }, { data: warehouse }, { data: replenishments, error }] = await Promise.all([
     supabase.from("machines").select("id,name").eq("status", "active").order("name"),
-    supabase.from("warehouse_stock").select("product_id,quantity,products(id,name,internal_code)").gt("quantity", 0).order("product_id"),
+    supabase.from("warehouse_stock").select("product_id,quantity,products(id,name)").gt("quantity", 0).order("product_id"),
     supabase.from("replenishments").select("id,created_at,notes,machines(name),profiles(full_name),replenishment_lines(quantity,products(name))").order("created_at", { ascending: false }).limit(50),
   ]);
-  const products = (warehouse ?? []).filter((row) => row.products?.[0]).map((row) => ({ id: row.product_id, name: row.products[0].name, internal_code: row.products[0].internal_code, available: row.quantity }));
+  const products = (warehouse ?? []).filter((row) => row.products?.[0]).map((row) => ({ id: row.product_id, name: row.products[0].name, available: row.quantity }));
 
   return <main className="mx-auto min-h-screen max-w-6xl px-5 py-8 sm:px-8">
     <header className="mb-6"><p className="text-sm font-semibold tracking-wide text-[var(--brand)]">VENDING MANAGER</p><h1 className="mt-1 text-2xl font-semibold">Reposições</h1></header>
