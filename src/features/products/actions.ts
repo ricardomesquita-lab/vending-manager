@@ -4,6 +4,19 @@ import { revalidatePath } from "next/cache";
 import { randomUUID } from "node:crypto";
 import { createClient } from "@/lib/supabase/server";
 
+async function uploadProductImage(supabase: Awaited<ReturnType<typeof createClient>>, userId: string, formData: FormData): Promise<{ url?: string; error?: string }> {
+  const file = formData.get("product_image");
+  if (!(file instanceof File) || file.size === 0) return {};
+  const extensions: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
+  if (!extensions[file.type]) return { error: "A foto deve estar em formato JPG, PNG ou WebP." };
+  if (file.size > 5 * 1024 * 1024) return { error: "A foto não pode exceder 5 MB." };
+  if (!supabase) return { error: "Configure a ligação ao Supabase antes de carregar fotos." };
+  const path = `${userId}/${randomUUID()}.${extensions[file.type]}`;
+  const { error } = await supabase.storage.from("product-images").upload(path, file, { contentType: file.type, cacheControl: "31536000", upsert: false });
+  if (error) return { error: "Não foi possível carregar a foto. Confirme se a migration de imagens foi aplicada." };
+  return { url: supabase.storage.from("product-images").getPublicUrl(path).data.publicUrl };
+}
+
 export async function createProduct(formData: FormData): Promise<string | null> {
   const supabase = await createClient();
   if (!supabase) return "Configure a ligação ao Supabase antes de criar produtos.";
@@ -11,6 +24,8 @@ export async function createProduct(formData: FormData): Promise<string | null> 
   if (!user) return "Inicie sessão para continuar.";
   const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
   if (profile?.role !== "administrator") return "Só um administrador pode criar produtos.";
+  const uploadedImage = await uploadProductImage(supabase, user.id, formData);
+  if (uploadedImage.error) return uploadedImage.error;
 
   const name = String(formData.get("name") ?? "").trim();
   const categoryId = String(formData.get("category_id") ?? "");
@@ -26,7 +41,7 @@ export async function createProduct(formData: FormData): Promise<string | null> 
   const { error } = await supabase.from("products").insert({
     internal_code: `AUTO-${randomUUID()}`,
     name,
-    image_url: String(formData.get("image_url") ?? "").trim() || null,
+    image_url: uploadedImage.url ?? null,
     category_id: categoryId,
     description: String(formData.get("description") ?? "").trim(),
     preferred_supplier_id: String(formData.get("preferred_supplier_id") ?? "") || null,
@@ -49,6 +64,8 @@ export async function updateProduct(productId: string, formData: FormData): Prom
   if (!user) return "Inicie sessão para continuar.";
   const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
   if (profile?.role !== "administrator") return "Só um administrador pode editar produtos.";
+  const uploadedImage = await uploadProductImage(supabase, user.id, formData);
+  if (uploadedImage.error) return uploadedImage.error;
   const name = String(formData.get("name") ?? "").trim();
   const categoryId = String(formData.get("category_id") ?? "");
   const salePrice = Number(formData.get("sale_price_gross"));
@@ -60,7 +77,7 @@ export async function updateProduct(productId: string, formData: FormData): Prom
   }
   const { error } = await supabase.from("products").update({
     name,
-    image_url: String(formData.get("image_url") ?? "").trim() || null,
+    ...(uploadedImage.url ? { image_url: uploadedImage.url } : {}),
     category_id: categoryId,
     description: String(formData.get("description") ?? "").trim(),
     preferred_supplier_id: String(formData.get("preferred_supplier_id") ?? "") || null,
