@@ -1,5 +1,7 @@
 begin;
 
+alter table public.products add column image_url text;
+
 create table public.machine_slots (
   id uuid primary key default gen_random_uuid(),
   machine_id uuid not null references public.machines(id),

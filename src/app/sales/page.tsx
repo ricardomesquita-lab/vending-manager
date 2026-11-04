@@ -18,7 +18,7 @@ export default async function SalesPage() {
     supabase.from("machines").select("id,name,code").eq("status", "active").order("name"),
     supabase.from("machine_stock").select("machine_id,product_id,quantity,products(id,name,vat_rate,sale_price_gross,active)").gt("quantity", 0),
     supabase.from("machine_product_prices").select("machine_id,product_id,sale_price_gross"),
-    supabase.from("machine_slots").select("id,machine_id,selection_code,product_id,quantity,capacity,active,products(id,name,sale_price_gross,active)").eq("active", true).order("selection_code"),
+    supabase.from("machine_slots").select("id,machine_id,selection_code,product_id,quantity,capacity,active,products(id,name,image_url,sale_price_gross,active)").eq("active", true).order("selection_code"),
     supabase.from("sales").select("id,machine_id,sale_date,status,total_inc_vat,total_ex_vat,total_cost_ex_vat,gross_margin,created_at,created_by,void_reason,machines(name),sale_lines(product_id,machine_slot_id,quantity,line_total_inc_vat,products(name),machine_slots(selection_code))").order("created_at", { ascending: false }).limit(50),
   ]);
   const overrides = new Map((machinePrices ?? []).map((row) => [`${row.machine_id}:${row.product_id}`, Number(row.sale_price_gross)]));

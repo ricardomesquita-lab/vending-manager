@@ -20,16 +20,15 @@ export async function saveMachineSlot(formData: FormData): Promise<string | null
 
   const machineId = String(formData.get("machine_id") ?? "");
   const selectionCode = String(formData.get("selection_code") ?? "").trim();
+  const slotId = String(formData.get("slot_id") ?? "");
+  const newSelectionCode = String(formData.get("new_selection_code") ?? selectionCode).trim();
   const productId = String(formData.get("product_id") ?? "") || null;
   const capacity = Number(formData.get("capacity"));
-  if (!machineId || !selectionCode || !Number.isInteger(capacity) || capacity < 1) return "Indique uma capacidade válida.";
+  if (!machineId || !selectionCode || !newSelectionCode || !Number.isInteger(capacity) || capacity < 1) return "Indique um número de posição e capacidade válidos.";
 
-  const { error } = await supabase.from("machine_slots").upsert({
-    machine_id: machineId,
-    selection_code: selectionCode,
-    product_id: productId,
-    capacity,
-  }, { onConflict: "machine_id,selection_code" });
+  const { error } = slotId
+    ? await supabase.from("machine_slots").update({ selection_code: newSelectionCode, product_id: productId, capacity }).eq("id", slotId).eq("machine_id", machineId)
+    : await supabase.from("machine_slots").upsert({ machine_id: machineId, selection_code: newSelectionCode, product_id: productId, capacity }, { onConflict: "machine_id,selection_code" });
   if (error) return error.code === "23514" ? "Esvazie esta posição antes de trocar o produto ou reduzir a capacidade." : "Não foi possível guardar esta posição. Confirme se a migration das posições foi aplicada.";
   revalidatePath("/sales");
   revalidatePath("/replenishments");

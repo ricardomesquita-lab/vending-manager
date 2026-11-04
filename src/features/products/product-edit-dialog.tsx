@@ -16,6 +16,7 @@ type Product = {
   warehouse_minimum: number;
   machine_minimum: number;
   active: boolean;
+  image_url?: string | null;
 };
 
 export function ProductEditDialog({ categories, suppliers, product }: { categories: Choice[]; suppliers: Choice[]; product: Product }) {

@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useMemo, useState, useTransition } from "react";
 import { registerMachineSlotSale, replenishMachineSlot, saveMachineSlot } from "@/features/machines/actions";
 
@@ -12,22 +11,12 @@ export type MachineSlot = {
   quantity: number;
   capacity: number;
   active: boolean;
-  product: { id: string; name: string; sale_price_gross: number; active: boolean } | null;
+  product: { id: string; name: string; sale_price_gross: number; active: boolean; image_url?: string | null } | null;
   price: number | null;
 };
-export type SlotProduct = { id: string; name: string; sale_price_gross: number; active: boolean; warehouse_quantity?: number };
+export type SlotProduct = { id: string; name: string; sale_price_gross: number; active: boolean; image_url?: string | null; warehouse_quantity?: number };
 type Mode = "sale" | "replenishment";
-type Position = { code: string; left: number; top: number };
 type BasketLine = { slot_id: string; product_id: string; name: string; selection_code: string; quantity: number; unit_price: number };
-
-const positions: Position[] = [
-  ...["11", "13", "15", "17"].map((code, i) => ({ code, left: [24, 39, 54, 69][i], top: 17.3 })),
-  ...["21", "22", "23", "24", "25", "26", "27"].map((code, i) => ({ code, left: [22, 31, 40, 49, 58, 67, 76][i], top: 30.2 })),
-  ...["31", "33", "35", "37"].map((code, i) => ({ code, left: [25, 40, 55, 70][i], top: 40.7 })),
-  ...["41", "43", "45", "47"].map((code, i) => ({ code, left: [25, 40, 55, 70][i], top: 50.8 })),
-  ...["51", "52", "53", "54", "55", "56", "57", "58"].map((code, i) => ({ code, left: [20, 28, 36, 44, 52, 60, 68, 76][i], top: 69.2 })),
-  ...["61", "62", "63", "64", "65", "66", "67", "68"].map((code, i) => ({ code, left: [20, 28, 36, 44, 52, 60, 68, 76][i], top: 82.2 })),
-];
 const euro = new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR" });
 const localToday = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Lisbon", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
 
@@ -50,12 +39,21 @@ export function MachineSlotMap({
   const [quantity, setQuantity] = useState("1");
   const [capacity, setCapacity] = useState("10");
   const [productId, setProductId] = useState("");
+  const [slotCode, setSlotCode] = useState("");
   const [saleDay, setSaleDay] = useState(saleDate || localToday());
   const [basket, setBasket] = useState<BasketLine[]>([]);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [pending, startTransition] = useTransition();
   const slotByCode = useMemo(() => new Map(slots.map((slot) => [slot.selection_code, slot])), [slots]);
+  const shelfRows = useMemo(() => {
+    let start = 0;
+    return [4, 7, 4, 4, 8, 8].map((size) => {
+      const row = slots.slice(start, start + size);
+      start += size;
+      return row;
+    });
+  }, [slots]);
   const selected = slots.find((slot) => slot.id === selectedId) ?? null;
   const configured = slots.filter((slot) => slot.product_id && slot.active).length;
   const totalQuantity = slots.reduce((sum, slot) => sum + slot.quantity, 0);
@@ -112,6 +110,8 @@ export function MachineSlotMap({
     submit(saveMachineSlot, {
       machine_id: machineId,
       selection_code: selected.selection_code,
+      slot_id: selected.id,
+      new_selection_code: slotCode,
       product_id: productId,
       capacity,
     }, `Posição ${selected.selection_code} guardada.`);
@@ -128,31 +128,37 @@ export function MachineSlotMap({
     </div>
 
     <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1.25fr)_minmax(18rem,0.75fr)]">
-      <div className="relative mx-auto w-full max-w-[660px] overflow-hidden rounded-2xl border border-[var(--line)] bg-[#51251c]">
-        <Image src="/machines/maquina-castanha.jpeg" alt="Frente da Máquina Castanha com posições de produtos" width={1536} height={2048} priority className="block h-auto w-full" />
-        {positions.map((position) => {
-          const slot = slotByCode.get(position.code);
+      <div className="mx-auto w-full max-w-[660px] space-y-3 rounded-2xl border border-[var(--line)] bg-slate-100 p-3 sm:p-5">
+        <div className="rounded-xl bg-slate-800 px-4 py-3 text-center text-sm font-semibold tracking-wide text-white">ESQUEMA DA MÁQUINA CASTANHA</div>
+        {shelfRows.map((row, rowIndex) => <div key={rowIndex} className="rounded-xl border-2 border-slate-300 bg-white p-2">
+          <p className="mb-2 px-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500">Prateleira {rowIndex + 1}</p>
+          <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${row.length}, minmax(0, 1fr))` }}>
+        {row.map((slot, slotIndex) => {
+          const code = slot?.selection_code ?? `—${slotIndex}`;
           const stocked = Boolean(slot?.product_id && slot.quantity > 0);
           const low = Boolean(slot?.product_id && slot.quantity > 0 && slot.quantity <= 2);
           const isSelected = slot?.id === selectedId;
           return <button
-            key={position.code}
+            key={slot?.id ?? `${rowIndex}-${code}`}
             type="button"
-            onClick={() => { if (slot) { setSelectedId(slot.id); setProductId(slot.product_id ?? ""); setCapacity(String(slot.capacity)); setQuantity("1"); setError(""); setNotice(""); } }}
+            onClick={() => { if (slot) { setSelectedId(slot.id); setProductId(slot.product_id ?? ""); setSlotCode(slot.selection_code); setCapacity(String(slot.capacity)); setQuantity("1"); setError(""); setNotice(""); } }}
             disabled={!slot}
-            aria-label={`Posição ${position.code}${slot?.product ? `, ${slot.product.name}, ${slot.quantity} unidades` : ", sem produto associado"}`}
-            title={`${position.code}${slot?.product ? ` · ${slot.product.name} · ${slot.quantity} un.` : " · por configurar"}`}
-            style={{ left: `${position.left}%`, top: `${position.top}%` }}
-            className={`absolute z-10 flex min-h-8 min-w-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-lg border px-1 text-[10px] font-bold shadow-md transition focus:outline-none focus:ring-2 focus:ring-white sm:min-h-9 sm:min-w-9 sm:text-xs ${isSelected ? "border-white bg-emerald-600 text-white ring-2 ring-emerald-700" : low ? "border-amber-100 bg-amber-400/95 text-slate-950" : stocked ? "border-emerald-100 bg-emerald-600/95 text-white" : "border-slate-100 bg-slate-700/90 text-white"}`}
-          >{position.code}</button>;
+            aria-label={`Posição ${code}${slot?.product ? `, ${slot.product.name}, ${slot.quantity} unidades` : ", sem produto associado"}`}
+            title={`${code}${slot?.product ? ` · ${slot.product.name} · ${slot.quantity} un.` : " · por configurar"}`}
+            className={`flex min-h-[86px] flex-col items-center justify-between rounded-lg border p-1.5 text-center transition focus:outline-none focus:ring-2 focus:ring-emerald-600 sm:min-h-[100px] ${isSelected ? "border-emerald-700 bg-emerald-50 ring-2 ring-emerald-600" : low ? "border-amber-300 bg-amber-50" : stocked ? "border-emerald-200 bg-emerald-50" : "border-slate-200 bg-slate-50"}`}
+          >{slot?.product?.image_url ? <img src={slot.product.image_url} alt="" className="h-10 w-10 rounded-md object-contain sm:h-12 sm:w-12" /> : <span className="flex h-10 w-10 items-center justify-center rounded-md bg-slate-200 text-lg text-slate-500">＋</span>}<span className="text-[10px] font-bold text-slate-800">{code}</span><span className="line-clamp-2 text-[9px] leading-tight text-slate-600">{slot?.product?.name ?? "Livre"}</span>{slot?.product && <span className="text-[9px] font-medium text-slate-500">{slot.quantity}/{slot.capacity}</span>}</button>;
         })}
+          </div>
+        </div>)}
+        <div className="rounded-lg bg-slate-800 px-4 py-3 text-center text-xs font-semibold text-white">RECOLHA DO PRODUTO</div>
       </div>
 
       <aside className="space-y-4 rounded-2xl border border-[var(--line)] bg-white p-5">
-        {!selected ? <div><h3 className="font-semibold">Escolha uma posição</h3><p className="mt-2 text-sm text-[var(--muted)]">Toque num dos números sobre a fotografia.</p><div className="mt-3 flex flex-wrap gap-2 text-xs"><span className="rounded-full bg-emerald-100 px-2.5 py-1 text-emerald-900">Verde: stock disponível</span><span className="rounded-full bg-amber-100 px-2.5 py-1 text-amber-900">Amarelo: pouco stock</span><span className="rounded-full bg-slate-200 px-2.5 py-1 text-slate-800">Cinzento: sem produto ou sem stock</span></div>{!slots.length && <p className="mt-3 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">As posições ainda não foram criadas. Aplique a migration de posições da máquina.</p>}</div> : <>
+        {!selected ? <div><h3 className="font-semibold">Escolha uma posição</h3><p className="mt-2 text-sm text-[var(--muted)]">Toque numa posição do esquema para ver o produto e atualizar o stock.</p><div className="mt-3 flex flex-wrap gap-2 text-xs"><span className="rounded-full bg-emerald-100 px-2.5 py-1 text-emerald-900">Verde: stock disponível</span><span className="rounded-full bg-amber-100 px-2.5 py-1 text-amber-900">Amarelo: pouco stock</span><span className="rounded-full bg-slate-200 px-2.5 py-1 text-slate-800">Cinzento: sem produto ou sem stock</span></div>{!slots.length && <p className="mt-3 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">As posições ainda não foram criadas. Aplique a migration de posições da máquina.</p>}</div> : <>
           <div className="flex items-start justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-wide text-[var(--brand)]">Posição {selected.selection_code}</p><h3 className="mt-1 text-lg font-semibold">{selected.product?.name ?? "Sem produto associado"}</h3></div><button type="button" onClick={() => setSelectedId(null)} aria-label="Fechar posição" className="rounded-lg border border-[var(--line)] px-3 py-1 text-sm">Fechar</button></div>
 
           {selected.product_id && selected.product ? <>
+            {isAdmin && mode === "replenishment" && <label className="block text-sm font-medium">Número da posição<input value={slotCode} onChange={(event) => setSlotCode(event.target.value)} maxLength={12} className="field" /></label>}
             <div className="grid grid-cols-2 gap-3 rounded-xl bg-slate-50 p-4"><div><p className="text-xs text-[var(--muted)]">Na posição</p><p className="mt-1 text-2xl font-semibold">{selected.quantity}<span className="ml-1 text-sm font-normal">un.</span></p></div><div><p className="text-xs text-[var(--muted)]">Capacidade</p><p className="mt-1 text-2xl font-semibold">{selected.capacity}<span className="ml-1 text-sm font-normal">un.</span></p></div></div>
             {mode === "sale" ? <>
               <label className="block text-sm font-medium">Quantidade a vender<input type="number" min="1" max={selected.quantity} step="1" value={quantity} onChange={(event) => setQuantity(event.target.value)} className="field" /></label>
@@ -166,6 +172,7 @@ export function MachineSlotMap({
             </>}
             {isAdmin && mode === "replenishment" && selected.quantity === 0 && <details className="rounded-xl border border-[var(--line)] p-3"><summary className="cursor-pointer text-sm font-medium">Alterar produto ou capacidade</summary><div className="mt-3 space-y-3"><label className="block text-sm font-medium">Produto<select value={productId} onChange={(event) => setProductId(event.target.value)} className="field"><option value="">Sem produto</option>{products.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label><label className="block text-sm font-medium">Capacidade<input type="number" min="1" step="1" value={capacity} onChange={(event) => setCapacity(event.target.value)} className="field" /></label><button type="button" disabled={pending || !productId} onClick={saveAssignment} className="w-full rounded-xl border border-[var(--line)] px-4 py-2.5 text-sm font-semibold disabled:opacity-50">Guardar posição</button></div></details>}
           </> : isAdmin && mode === "replenishment" ? <>
+            <label className="block text-sm font-medium">Número da posição<input value={slotCode} onChange={(event) => setSlotCode(event.target.value)} maxLength={12} className="field" /></label>
             <p className="text-sm text-[var(--muted)]">Associe um produto a esta posição. Depois poderá repor stock a partir do armazém.</p>
             <label className="block text-sm font-medium">Produto<select value={productId} onChange={(event) => setProductId(event.target.value)} className="field"><option value="">Escolher produto</option>{products.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
             <label className="block text-sm font-medium">Capacidade<input type="number" min="1" step="1" value={capacity} onChange={(event) => setCapacity(event.target.value)} className="field" /></label>

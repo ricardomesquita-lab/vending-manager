@@ -26,6 +26,7 @@ export async function createProduct(formData: FormData): Promise<string | null> 
   const { error } = await supabase.from("products").insert({
     internal_code: `AUTO-${randomUUID()}`,
     name,
+    image_url: String(formData.get("image_url") ?? "").trim() || null,
     category_id: categoryId,
     description: String(formData.get("description") ?? "").trim(),
     preferred_supplier_id: String(formData.get("preferred_supplier_id") ?? "") || null,
@@ -59,6 +60,7 @@ export async function updateProduct(productId: string, formData: FormData): Prom
   }
   const { error } = await supabase.from("products").update({
     name,
+    image_url: String(formData.get("image_url") ?? "").trim() || null,
     category_id: categoryId,
     description: String(formData.get("description") ?? "").trim(),
     preferred_supplier_id: String(formData.get("preferred_supplier_id") ?? "") || null,

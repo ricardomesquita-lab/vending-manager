@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { createProduct, updateProduct } from "@/features/products/actions";
 
 type Choice = { id: string; name: string };
-type ExistingProduct = { id: string; name: string; category_id: string; description: string; preferred_supplier_id: string | null; vat_rate: number; sale_price_gross: number; average_cost_ex_vat: number; warehouse_minimum: number; machine_minimum: number; active: boolean };
+type ExistingProduct = { id: string; name: string; category_id: string; description: string; preferred_supplier_id: string | null; vat_rate: number; sale_price_gross: number; average_cost_ex_vat: number; warehouse_minimum: number; machine_minimum: number; active: boolean; image_url?: string | null };
 
 export function ProductForm({ categories, suppliers, product }: { categories: Choice[]; suppliers: Choice[]; product?: ExistingProduct }) {
   const [error, setError] = useState("");
@@ -15,6 +15,7 @@ export function ProductForm({ categories, suppliers, product }: { categories: Ch
       startTransition(() => { void (async () => { const result = product ? await updateProduct(product.id, formData) : await createProduct(formData); if (result) setError(result); else window.location.reload(); })(); });
     }}>
       <label className="text-sm font-medium">Nome<input name="name" required maxLength={150} defaultValue={product?.name} className="field" /></label>
+      <label className="text-sm font-medium">Link da foto real do produto (opcional)<input name="image_url" type="url" maxLength={2000} defaultValue={product?.image_url ?? ""} placeholder="https://…" className="field" /></label>
       <label className="text-sm font-medium">Categoria<select name="category_id" required defaultValue={product?.category_id ?? ""} className="field"><option value="" disabled>Escolher categoria</option>{categories.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
       <label className="text-sm font-medium">Fornecedor preferencial<select name="preferred_supplier_id" defaultValue={product?.preferred_supplier_id ?? ""} className="field"><option value="">Sem fornecedor definido</option>{suppliers.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
       {!product && <label className="text-sm font-medium">Custo inicial sem IVA (€)<input name="average_cost_ex_vat" type="number" min="0" step="0.0001" defaultValue="0" required className="field" /></label>}
