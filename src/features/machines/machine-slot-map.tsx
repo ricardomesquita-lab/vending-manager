@@ -22,6 +22,7 @@ const localToday = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Li
 const layouts: Record<string, string[][]> = {
   M1: [["21", "22", "23", "24", "25", "26"], ["41", "43", "44", "45"], ["51", "52", "53", "54", "55", "56"]],
   M2: [["11", "13", "15", "17"], ["21", "22", "23", "24", "25", "26"], ["31", "33", "35", "37"], ["41", "43", "45", "47"], ["51", "52", "53", "54", "55", "56", "57", "58"], ["61", "62", "63", "64", "65", "66", "67"]],
+  M3: [["11", "12", "13"], ["21", "22", "23", "24", "25", "26"], ["31", "32", "33", "34", "35", "36"], ["41", "42", "43", "44", "45", "46"], ["51", "52", "53", "54", "55", "56"], ["61", "62", "63", "64", "65"]],
 };
 
 export function MachineSlotMap({
@@ -133,7 +134,7 @@ export function MachineSlotMap({
 
     <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1.25fr)_minmax(18rem,0.75fr)]">
       <div className="mx-auto w-full max-w-[660px] space-y-3 rounded-2xl border border-[var(--line)] bg-slate-100 p-3 sm:p-5">
-        <div className="rounded-xl bg-slate-800 px-4 py-3 text-center text-sm font-semibold tracking-wide text-white">ESQUEMA DA MÁQUINA {machineCode === "M1" ? "CAFÉ" : "CASTANHA"}</div>
+        <div className="rounded-xl bg-slate-800 px-4 py-3 text-center text-sm font-semibold tracking-wide text-white">ESQUEMA DA MÁQUINA {machineCode === "M1" ? "CAFÉ" : machineCode === "M3" ? "PRETA" : "CASTANHA"}</div>
         {shelfRows.map((row, rowIndex) => <div key={rowIndex} className="rounded-xl border-2 border-slate-300 bg-white p-2">
           <p className="mb-2 px-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500">Prateleira {rowIndex + 1}</p>
           <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${row.length}, minmax(0, 1fr))` }}>

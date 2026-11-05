@@ -19,7 +19,7 @@ export function SalesForm({ machines, products, slots, isAdmin }: { machines: Ma
   const [pending, startTransition] = useTransition();
   const [requestKey, setRequestKey] = useState("");
   const selectedMachine = machines.find((machine) => machine.id === machineId);
-  const hasInteractiveMap = selectedMachine?.code === "M1" || selectedMachine?.code === "M2";
+  const hasInteractiveMap = selectedMachine?.code === "M1" || selectedMachine?.code === "M2" || selectedMachine?.code === "M3";
   const availableProducts = products.filter((product) => product.machine_id === machineId && product.quantity > 0);
   const total = useMemo(() => lines.reduce((sum, line) => {
     const product = availableProducts.find((item) => item.id === line.product_id);
