@@ -19,7 +19,7 @@ export function SalesForm({ machines, products, slots, isAdmin }: { machines: Ma
   const [pending, startTransition] = useTransition();
   const [requestKey, setRequestKey] = useState("");
   const selectedMachine = machines.find((machine) => machine.id === machineId);
-  const isCastanha = selectedMachine?.code === "M2";
+  const hasInteractiveMap = selectedMachine?.code === "M1" || selectedMachine?.code === "M2";
   const availableProducts = products.filter((product) => product.machine_id === machineId && product.quantity > 0);
   const total = useMemo(() => lines.reduce((sum, line) => {
     const product = availableProducts.find((item) => item.id === line.product_id);
@@ -28,7 +28,7 @@ export function SalesForm({ machines, products, slots, isAdmin }: { machines: Ma
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (isCastanha) return;
+    if (hasInteractiveMap) return;
     setError("");
     const form = new FormData(event.currentTarget);
     form.set("lines_json", JSON.stringify(lines.map((line) => ({ product_id: line.product_id, quantity: Number(line.quantity) }))));
@@ -41,10 +41,10 @@ export function SalesForm({ machines, products, slots, isAdmin }: { machines: Ma
   return <div className="space-y-4">
     <div className="grid gap-4 rounded-2xl border border-[var(--line)] bg-white p-5 sm:grid-cols-2">
       <label className="text-sm font-medium">Máquina<select name="machine_id" required value={machineId} onChange={(event) => { setMachineId(event.target.value); setLines([emptyLine()]); setRequestKey(""); }} className="field"><option value="" disabled>Escolher máquina</option>{machines.map((machine) => <option key={machine.id} value={machine.id}>{machine.name}</option>)}</select></label>
-      {!isCastanha && <label className="text-sm font-medium">Data da venda<input name="sale_date" required type="date" value={saleDate} onChange={(event) => setSaleDate(event.target.value)} className="field" /></label>}
+      {!hasInteractiveMap && <label className="text-sm font-medium">Data da venda<input name="sale_date" required type="date" value={saleDate} onChange={(event) => setSaleDate(event.target.value)} className="field" /></label>}
     </div>
 
-    {isCastanha ? <MachineSlotMap machineId={machineId} slots={slots.filter((slot) => slot.machine_id === machineId)} products={[]} mode="sale" isAdmin={isAdmin} saleDate={saleDate} /> : <form className="space-y-4 rounded-2xl border border-[var(--line)] bg-white p-5" onSubmit={onSubmit}>
+    {hasInteractiveMap ? <MachineSlotMap machineId={machineId} machineCode={selectedMachine.code} slots={slots.filter((slot) => slot.machine_id === machineId)} products={[]} mode="sale" isAdmin={isAdmin} saleDate={saleDate} /> : <form className="space-y-4 rounded-2xl border border-[var(--line)] bg-white p-5" onSubmit={onSubmit}>
       <input type="hidden" name="machine_id" value={machineId} />
       <input type="hidden" name="sale_date" value={saleDate} />
       <div className="space-y-3">{lines.map((line, index) => { const selected = availableProducts.find((product) => product.id === line.product_id); return <div key={index} className="grid items-end gap-3 rounded-xl bg-slate-50 p-4 sm:grid-cols-[1fr_9rem_9rem_auto]"><label className="text-sm font-medium">Produto<select required value={line.product_id} onChange={(event) => setLines((current) => current.map((item, row) => row === index ? { ...item, product_id: event.target.value } : item))} disabled={!machineId} className="field"><option value="" disabled>{machineId ? "Escolher produto" : "Escolha uma máquina"}</option>{availableProducts.map((product) => <option key={product.id} value={product.id}>{product.name} · {product.quantity} un.</option>)}</select></label><label className="text-sm font-medium">Quantidade<input required type="number" min="1" max={selected?.quantity ?? undefined} step="1" value={line.quantity} onChange={(event) => setLines((current) => current.map((item, row) => row === index ? { ...item, quantity: event.target.value } : item))} className="field" /></label><p className="pb-3 text-sm text-slate-600">{selected ? euro.format(selected.price) + " / un." : "Preço / un."}</p><button type="button" disabled={lines.length === 1} onClick={() => setLines((current) => current.filter((_, row) => row !== index))} aria-label="Remover linha" className="mb-0.5 h-11 rounded-xl border border-[var(--line)] px-3 text-slate-600 disabled:opacity-40">×</button></div>; })}</div>

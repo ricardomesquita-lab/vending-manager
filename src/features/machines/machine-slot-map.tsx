@@ -19,17 +19,14 @@ type Mode = "sale" | "replenishment";
 type BasketLine = { slot_id: string; product_id: string; name: string; selection_code: string; quantity: number; unit_price: number };
 const euro = new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR" });
 const localToday = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Lisbon", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
-const shelfCodes = [
-  ["11", "13", "15", "17"],
-  ["21", "22", "23", "24", "25", "26"],
-  ["31", "33", "35", "37"],
-  ["41", "43", "45", "47"],
-  ["51", "52", "53", "54", "55", "56", "57", "58"],
-  ["61", "62", "63", "64", "65", "66", "67"],
-];
+const layouts: Record<string, string[][]> = {
+  M1: [["21", "22", "23", "24", "25", "26"], ["41", "43", "44", "45"], ["51", "52", "53", "54", "55", "56"]],
+  M2: [["11", "13", "15", "17"], ["21", "22", "23", "24", "25", "26"], ["31", "33", "35", "37"], ["41", "43", "45", "47"], ["51", "52", "53", "54", "55", "56", "57", "58"], ["61", "62", "63", "64", "65", "66", "67"]],
+};
 
 export function MachineSlotMap({
   machineId,
+  machineCode,
   slots,
   products,
   mode,
@@ -37,6 +34,7 @@ export function MachineSlotMap({
   saleDate,
 }: {
   machineId: string;
+  machineCode: string;
   slots: MachineSlot[];
   products: SlotProduct[];
   mode: Mode;
@@ -54,6 +52,7 @@ export function MachineSlotMap({
   const [notice, setNotice] = useState("");
   const [pending, startTransition] = useTransition();
   const slotByCode = useMemo(() => new Map(slots.map((slot) => [slot.selection_code, slot])), [slots]);
+  const shelfCodes = layouts[machineCode] ?? [];
   const shelfRows = shelfCodes.map((codes) => codes.map((code) => slotByCode.get(code) ?? null));
   const visibleCodes = new Set(shelfCodes.flat());
   const extraSlots = slots.filter((slot) => !visibleCodes.has(slot.selection_code));
@@ -61,6 +60,7 @@ export function MachineSlotMap({
   const selected = slots.find((slot) => slot.id === selectedId) ?? null;
   const configured = visibleSlots.filter((slot) => slot.product_id && slot.active).length;
   const totalQuantity = visibleSlots.reduce((sum, slot) => sum + slot.quantity, 0);
+  const positionCount = shelfCodes.reduce((sum, row) => sum + row.length, 0);
 
   function submit(action: (formData: FormData) => Promise<string | null>, values: Record<string, string>, success: string) {
     setError(""); setNotice("");
@@ -126,14 +126,14 @@ export function MachineSlotMap({
 
   return <section className="space-y-4">
     <div className="grid gap-3 sm:grid-cols-3">
-      <article className="rounded-xl border border-[var(--line)] bg-white p-4"><p className="text-xs text-[var(--muted)]">Posições configuradas</p><p className="mt-1 text-xl font-semibold">{configured} <span className="text-sm font-normal text-[var(--muted)]">/ 33</span></p></article>
+      <article className="rounded-xl border border-[var(--line)] bg-white p-4"><p className="text-xs text-[var(--muted)]">Posições configuradas</p><p className="mt-1 text-xl font-semibold">{configured} <span className="text-sm font-normal text-[var(--muted)]">/ {positionCount}</span></p></article>
       <article className="rounded-xl border border-[var(--line)] bg-white p-4"><p className="text-xs text-[var(--muted)]">Unidades na máquina</p><p className="mt-1 text-xl font-semibold">{totalQuantity}</p></article>
       <article className="rounded-xl border border-[var(--line)] bg-white p-4"><p className="text-xs text-[var(--muted)]">Como usar</p><p className="mt-1 text-sm">Toque numa posição para ver ou atualizar.</p></article>
     </div>
 
     <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1.25fr)_minmax(18rem,0.75fr)]">
       <div className="mx-auto w-full max-w-[660px] space-y-3 rounded-2xl border border-[var(--line)] bg-slate-100 p-3 sm:p-5">
-        <div className="rounded-xl bg-slate-800 px-4 py-3 text-center text-sm font-semibold tracking-wide text-white">ESQUEMA DA MÁQUINA CASTANHA</div>
+        <div className="rounded-xl bg-slate-800 px-4 py-3 text-center text-sm font-semibold tracking-wide text-white">ESQUEMA DA MÁQUINA {machineCode === "M1" ? "CAFÉ" : "CASTANHA"}</div>
         {shelfRows.map((row, rowIndex) => <div key={rowIndex} className="rounded-xl border-2 border-slate-300 bg-white p-2">
           <p className="mb-2 px-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500">Prateleira {rowIndex + 1}</p>
           <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${row.length}, minmax(0, 1fr))` }}>
