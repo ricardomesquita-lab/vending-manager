@@ -132,7 +132,7 @@ export function MachineSlotMap({
       <article className="rounded-xl border border-[var(--line)] bg-white p-4"><p className="text-xs text-[var(--muted)]">Como usar</p><p className="mt-1 text-sm">Toque numa posição para ver ou atualizar.</p></article>
     </div>
 
-    <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1.25fr)_minmax(18rem,0.75fr)]">
+    <div className="grid items-start gap-4">
       <div className="mx-auto w-full max-w-[660px] space-y-3 rounded-2xl border border-[var(--line)] bg-slate-100 p-3 sm:p-5">
         <div className="rounded-xl bg-slate-800 px-4 py-3 text-center text-sm font-semibold tracking-wide text-white">ESQUEMA DA MÁQUINA {machineCode === "M1" ? "CAFÉ" : machineCode === "M3" ? "PRETA" : "CASTANHA"}</div>
         {shelfRows.map((row, rowIndex) => <div key={rowIndex} className="rounded-xl border-2 border-slate-300 bg-white p-2">
