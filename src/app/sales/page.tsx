@@ -14,11 +14,12 @@ export default async function SalesPage() {
   if (!supabase) redirect("/login");
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
-  const [{ data: profile }, { data: machines }, { data: machinePrices }, { data: machineSlots }, { data: sales, error }] = await Promise.all([
+  const [{ data: profile }, { data: machines }, { data: machinePrices }, { data: machineSlots }, { data: productsData }, { data: sales, error }] = await Promise.all([
     supabase.from("profiles").select("role").eq("id", user.id).maybeSingle(),
     supabase.from("machines").select("id,name,code").eq("status", "active").order("name"),
     supabase.from("machine_product_prices").select("machine_id,product_id,sale_price_gross"),
     supabase.from("machine_slots").select("id,machine_id,selection_code,product_id,quantity,capacity,active,products(id,name,image_url,sale_price_gross,active)").eq("active", true).order("selection_code"),
+    supabase.from("products").select("id,name,image_url,sale_price_gross,active").eq("active", true).order("name"),
     supabase.from("sales").select("id,machine_id,sale_date,status,total_inc_vat,total_ex_vat,total_cost_ex_vat,gross_margin,created_at,created_by,void_reason,machines(name,code),sale_lines(product_id,machine_slot_id,quantity,line_total_inc_vat,products(name),machine_slots(selection_code))").order("created_at", { ascending: false }).limit(50),
   ]);
 
@@ -32,7 +33,7 @@ export default async function SalesPage() {
   return <main className="mx-auto min-h-screen max-w-6xl px-5 py-8 sm:px-8">
     <header className="mb-6"><p className="text-sm font-semibold tracking-wide text-[var(--brand)]">VENDING MANAGER</p><h1 className="mt-1 text-2xl font-semibold">Vendas</h1></header>
     <PhaseTwoNav />
-    <section className="mt-7"><div className="mb-3"><h2 className="text-lg font-semibold">Registar venda</h2><p className="mt-1 text-sm text-[var(--muted)]">As máquinas aparecem todas ao mesmo tempo. Seleciona os produtos diretamente no esquema.</p></div><SalesForm machines={machines ?? []} slots={slotOptions} isAdmin={isAdmin} /></section>
+    <section className="mt-7"><div className="mb-3"><h2 className="text-lg font-semibold">Registar venda</h2><p className="mt-1 text-sm text-[var(--muted)]">As máquinas aparecem todas ao mesmo tempo. Seleciona os produtos diretamente no esquema.</p></div><SalesForm machines={machines ?? []} slots={slotOptions} products={productsData ?? []} isAdmin={isAdmin} /></section>
     <section className="mt-8">
       <h2 className="mb-3 text-lg font-semibold">Histórico operacional</h2>
       {error ? <p className="rounded-xl bg-amber-50 p-4 text-sm text-amber-900">Não foi possível carregar as vendas. Confirme se as migrations foram aplicadas.</p> : sales?.length ? <div className="space-y-3">{sales.map((sale) => {

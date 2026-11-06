@@ -54,6 +54,8 @@ export async function createProduct(formData: FormData): Promise<string | null> 
   if (error) return error.code === "23505" ? "Já existe um produto com esse código de barras." : "Não foi possível guardar o produto. Confirme os dados e a migration da Fase 2.";
   revalidatePath("/products");
   revalidatePath("/stock");
+  revalidatePath("/sales");
+  revalidatePath("/replenishments");
   return null;
 }
 
@@ -91,6 +93,8 @@ export async function updateProduct(productId: string, formData: FormData): Prom
   revalidatePath("/products");
   revalidatePath("/purchases");
   revalidatePath("/stock");
+  revalidatePath("/sales");
+  revalidatePath("/replenishments");
   return null;
 }
 

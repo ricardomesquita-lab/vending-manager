@@ -16,7 +16,7 @@ export default async function ReplenishmentsPage() {
     supabase.from("profiles").select("role").eq("id", user.id).maybeSingle(),
     supabase.from("machines").select("id,name,code").eq("status", "active").order("name"),
     supabase.from("warehouse_stock").select("product_id,quantity,products(id,name)").gt("quantity", 0).order("product_id"),
-    supabase.from("products").select("id,name,sale_price_gross,active").eq("active", true).order("name"),
+    supabase.from("products").select("id,name,image_url,sale_price_gross,active").eq("active", true).order("name"),
     supabase.from("machine_slots").select("id,machine_id,selection_code,product_id,quantity,capacity,active,products(id,name,image_url,sale_price_gross,active)").eq("active", true).order("selection_code"),
     supabase.from("replenishments").select("id,created_at,notes,machines(name,code),profiles(full_name),replenishment_lines(quantity,products(name),machine_slots(selection_code))").order("created_at", { ascending: false }).limit(50),
   ]);

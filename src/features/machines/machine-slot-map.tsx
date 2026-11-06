@@ -52,13 +52,23 @@ export function MachineSlotMap({
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [pending, startTransition] = useTransition();
-  const slotByCode = useMemo(() => new Map(slots.map((slot) => [slot.selection_code, slot])), [slots]);
+  const slotsWithProducts = useMemo(() => slots.map((slot) => {
+    const fallbackProduct = products.find((product) => product.id === slot.product_id) ?? null;
+    const linkedProduct = slot.product;
+    return {
+      ...slot,
+      product: linkedProduct
+        ? { ...fallbackProduct, ...linkedProduct, image_url: linkedProduct.image_url ?? fallbackProduct?.image_url ?? null }
+        : fallbackProduct,
+    };
+  }), [slots, products]);
+  const slotByCode = useMemo(() => new Map(slotsWithProducts.map((slot) => [slot.selection_code, slot])), [slotsWithProducts]);
   const shelfCodes = layouts[machineCode] ?? [];
   const shelfRows = shelfCodes.map((codes) => codes.map((code) => slotByCode.get(code) ?? null));
   const visibleCodes = new Set(shelfCodes.flat());
-  const extraSlots = slots.filter((slot) => !visibleCodes.has(slot.selection_code));
+  const extraSlots = slotsWithProducts.filter((slot) => !visibleCodes.has(slot.selection_code));
   const visibleSlots = shelfRows.flatMap((row) => row).filter((slot): slot is MachineSlot => Boolean(slot));
-  const selected = slots.find((slot) => slot.id === selectedId) ?? null;
+  const selected = slotsWithProducts.find((slot) => slot.id === selectedId) ?? null;
   const configured = visibleSlots.filter((slot) => slot.product_id && slot.active).length;
   const totalQuantity = visibleSlots.reduce((sum, slot) => sum + slot.quantity, 0);
   const positionCount = shelfCodes.reduce((sum, row) => sum + row.length, 0);
@@ -165,7 +175,7 @@ export function MachineSlotMap({
       {extraSlots.length > 0 && <p className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900">Há posições antigas fora desta numeração ({extraSlots.map((slot) => slot.selection_code).join(", ")}). Foram mantidas para não perder stock ou histórico.</p>}
 
       <aside className="space-y-4 rounded-2xl border border-[var(--line)] bg-white p-5">
-        {!selected ? <div><h3 className="font-semibold">Escolha uma posição</h3><p className="mt-2 text-sm text-[var(--muted)]">Toque numa posição do esquema para ver o produto e atualizar o stock.</p><div className="mt-3 flex flex-wrap gap-2 text-xs"><span className="rounded-full bg-emerald-100 px-2.5 py-1 text-emerald-900">Verde: stock disponível</span><span className="rounded-full bg-amber-100 px-2.5 py-1 text-amber-900">Amarelo: pouco stock</span><span className="rounded-full bg-slate-200 px-2.5 py-1 text-slate-800">Cinzento: sem produto ou sem stock</span></div>{!slots.length && <p className="mt-3 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">As posições ainda não foram criadas. Aplique a migration de posições da máquina.</p>}</div> : <>
+        {!selected ? <div><h3 className="font-semibold">Escolha uma posição</h3><p className="mt-2 text-sm text-[var(--muted)]">Toque numa posição do esquema para ver o produto e atualizar o stock.</p><div className="mt-3 flex flex-wrap gap-2 text-xs"><span className="rounded-full bg-emerald-100 px-2.5 py-1 text-emerald-900">Verde: stock disponível</span><span className="rounded-full bg-amber-100 px-2.5 py-1 text-amber-900">Amarelo: pouco stock</span><span className="rounded-full bg-slate-200 px-2.5 py-1 text-slate-800">Cinzento: sem produto ou sem stock</span></div>{!slotsWithProducts.length && <p className="mt-3 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">As posições ainda não foram criadas. Aplique a migration de posições da máquina.</p>}</div> : <>
           <div className="flex items-start justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-wide text-[var(--brand)]">Posição {selected.selection_code}</p><h3 className="mt-1 text-lg font-semibold">{selected.product?.name ?? "Sem produto associado"}</h3></div><button type="button" onClick={() => setSelectedId(null)} aria-label="Fechar posição" className="rounded-lg border border-[var(--line)] px-3 py-1 text-sm">Fechar</button></div>
 
           {selected.product_id && selected.product ? <>
