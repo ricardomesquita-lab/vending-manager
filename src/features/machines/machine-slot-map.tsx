@@ -124,6 +124,11 @@ export function MachineSlotMap({
 
   const availableToRefill = selected?.product_id ? products.find((item) => item.id === selected.product_id)?.warehouse_quantity ?? 0 : 0;
   const maxToRefill = selected ? Math.max(0, Math.min(availableToRefill, selected.capacity - selected.quantity)) : 0;
+  const machineBackground = machineCode === "M3"
+    ? "border-neutral-800 bg-neutral-950"
+    : machineCode === "M2"
+      ? "border-amber-300 bg-amber-100"
+      : "border-violet-200 bg-violet-100";
 
   return <section className="space-y-4">
     <div className="grid gap-3 sm:grid-cols-3">
@@ -133,7 +138,7 @@ export function MachineSlotMap({
     </div>
 
     <div className="grid items-start gap-4">
-      <div className="mx-auto w-full max-w-[660px] space-y-3 rounded-2xl border border-[var(--line)] bg-slate-100 p-3 sm:p-5">
+      <div className={`mx-auto w-full max-w-[660px] space-y-3 rounded-2xl border p-3 sm:p-5 ${machineBackground}`}>
         <div className="rounded-xl bg-slate-800 px-4 py-3 text-center text-sm font-semibold tracking-wide text-white">ESQUEMA DA MÁQUINA {machineCode === "M1" ? "CAFÉ" : machineCode === "M3" ? "PRETA" : "CASTANHA"}</div>
         {shelfRows.map((row, rowIndex) => <div key={rowIndex} className="rounded-xl border-2 border-slate-300 bg-white p-2">
           <p className="mb-2 px-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500">Prateleira {rowIndex + 1}</p>
