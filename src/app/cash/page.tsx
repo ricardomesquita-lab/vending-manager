@@ -26,7 +26,7 @@ export default async function CashPage() {
     <section className="mt-7">
       <h2 className="mb-2 text-lg font-semibold">Movimentos pontuais</h2>
       <p className="mb-3 text-sm text-[var(--muted)]">Regista uma recolha, reforço ou retirada quando acontecer. Não há tarefas diárias.</p>
-      <CashOperationForm machines={machines ?? []} />
+      {machines?.length ? <div className="grid items-start gap-4 xl:grid-cols-3">{machines.map((machine) => <article key={machine.id} className="min-w-0 rounded-2xl border border-[var(--line)] bg-slate-50 p-3 sm:p-4"><h3 className="mb-3 px-1 text-base font-semibold">{machine.name}</h3><CashOperationForm machine={machine} /></article>)}</div> : <p className="rounded-xl bg-amber-50 p-4 text-sm text-amber-900">Não há máquinas ativas para registar movimentos.</p>}
     </section>
 
     <section className="mt-8">
