@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { PhaseTwoNav } from "@/components/phase-two-nav";
 import { CashOperationForm } from "@/features/cash/cash-forms";
+import { machinePanelClasses, machinePanelHeadingClasses } from "@/features/machines/machine-panel-colors";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -14,7 +15,7 @@ export default async function CashPage() {
   if (!user) redirect("/login");
 
   const [{ data: machines }, { data: operations, error: operationsError }] = await Promise.all([
-    supabase.from("machines").select("id,name").eq("status", "active").order("name"),
+    supabase.from("machines").select("id,name,code").eq("status", "active").order("name"),
     supabase.from("cash_operations").select("id,machine_id,operation_date,operation_type,amount,notes,created_at,created_by,machines(name)").order("created_at", { ascending: false }).limit(50),
   ]);
 
@@ -25,7 +26,7 @@ export default async function CashPage() {
     <section className="mt-7">
       <h2 className="mb-2 text-lg font-semibold">Movimentos de caixa</h2>
       <p className="mb-3 text-sm text-[var(--muted)]">Regista o valor que foi recolhido, acrescentado ou retirado da máquina.</p>
-      {machines?.length ? <div className="grid items-start gap-4 xl:grid-cols-3">{machines.map((machine) => <article key={machine.id} className="min-w-0 rounded-2xl border border-[var(--line)] bg-slate-50 p-3 sm:p-4"><h3 className="mb-3 px-1 text-base font-semibold">{machine.name}</h3><CashOperationForm machine={machine} /></article>)}</div> : <p className="rounded-xl bg-amber-50 p-4 text-sm text-amber-900">Não há máquinas ativas para registar movimentos.</p>}
+      {machines?.length ? <div className="grid items-start gap-4 xl:grid-cols-3">{machines.map((machine) => <article key={machine.id} className={`min-w-0 rounded-2xl border p-3 sm:p-4 ${machinePanelClasses(machine.code)}`}><h3 className={`mb-3 px-1 text-base font-semibold ${machinePanelHeadingClasses(machine.code)}`}>{machine.name}</h3><CashOperationForm machine={machine} /></article>)}</div> : <p className="rounded-xl bg-amber-50 p-4 text-sm text-amber-900">Não há máquinas ativas para registar movimentos.</p>}
     </section>
 
     <section className="mt-8">
