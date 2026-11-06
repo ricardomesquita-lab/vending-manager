@@ -127,7 +127,7 @@ export function MachineSlotMap({
   const machineBackground = machineCode === "M3"
     ? "border-neutral-800 bg-neutral-950"
     : machineCode === "M2"
-      ? "border-amber-300 bg-amber-100"
+      ? "border-[#b8875d] bg-[#d8b08c]"
       : "border-violet-200 bg-violet-100";
 
   return <section className="space-y-4">
