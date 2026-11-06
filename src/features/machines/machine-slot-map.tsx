@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
+import { ProductThumbnail } from "@/components/product-thumbnail";
 import { registerMachineSlotSale, replenishMachineSlot, saveMachineSlot } from "@/features/machines/actions";
 
 export type MachineSlot = {
@@ -16,7 +17,7 @@ export type MachineSlot = {
 };
 export type SlotProduct = { id: string; name: string; sale_price_gross: number; active: boolean; image_url?: string | null; warehouse_quantity?: number };
 type Mode = "sale" | "replenishment";
-type BasketLine = { slot_id: string; product_id: string; name: string; selection_code: string; quantity: number; unit_price: number };
+type BasketLine = { slot_id: string; product_id: string; name: string; image_url?: string | null; selection_code: string; quantity: number; unit_price: number };
 const euro = new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR" });
 const localToday = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Lisbon", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
 const layouts: Record<string, string[][]> = {
@@ -94,7 +95,7 @@ export function MachineSlotMap({
     setError("");
     setBasket((current) => {
       const existing = current.find((line) => line.slot_id === selected.id);
-      if (!existing) return [...current, { slot_id: selected.id, product_id: selected.product_id!, name: selected.product!.name, selection_code: selected.selection_code, quantity: amount, unit_price: selected.price ?? selected.product!.sale_price_gross }];
+      if (!existing) return [...current, { slot_id: selected.id, product_id: selected.product_id!, name: selected.product!.name, image_url: selected.product!.image_url, selection_code: selected.selection_code, quantity: amount, unit_price: selected.price ?? selected.product!.sale_price_gross }];
       return current.map((line) => line.slot_id === selected.id ? { ...line, quantity: Math.min(selected.quantity, line.quantity + amount) } : line);
     });
     setNotice(`Posição ${selected.selection_code} adicionada à venda.`);
@@ -133,6 +134,7 @@ export function MachineSlotMap({
   }
 
   const availableToRefill = selected?.product_id ? products.find((item) => item.id === selected.product_id)?.warehouse_quantity ?? 0 : 0;
+  const assignmentPreview = products.find((item) => item.id === productId) ?? null;
   const maxToRefill = selected ? Math.max(0, Math.min(availableToRefill, selected.capacity - selected.quantity)) : 0;
   const machineBackground = machineCode === "M3"
     ? "border-neutral-800 bg-neutral-950"
@@ -176,7 +178,8 @@ export function MachineSlotMap({
 
       <aside className="space-y-4 rounded-2xl border border-[var(--line)] bg-white p-5">
         {!selected ? <div><h3 className="font-semibold">Escolha uma posição</h3><p className="mt-2 text-sm text-[var(--muted)]">Toque numa posição do esquema para ver o produto e atualizar o stock.</p><div className="mt-3 flex flex-wrap gap-2 text-xs"><span className="rounded-full bg-emerald-100 px-2.5 py-1 text-emerald-900">Verde: stock disponível</span><span className="rounded-full bg-amber-100 px-2.5 py-1 text-amber-900">Amarelo: pouco stock</span><span className="rounded-full bg-slate-200 px-2.5 py-1 text-slate-800">Cinzento: sem produto ou sem stock</span></div>{!slotsWithProducts.length && <p className="mt-3 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">As posições ainda não foram criadas. Aplique a migration de posições da máquina.</p>}</div> : <>
-          <div className="flex items-start justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-wide text-[var(--brand)]">Posição {selected.selection_code}</p><h3 className="mt-1 text-lg font-semibold">{selected.product?.name ?? "Sem produto associado"}</h3></div><button type="button" onClick={() => setSelectedId(null)} aria-label="Fechar posição" className="rounded-lg border border-[var(--line)] px-3 py-1 text-sm">Fechar</button></div>
+          <div className="flex items-start justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-wide text-[var(--brand)]">Posição {selected.selection_code}</p><h3 className="mt-1 flex items-center gap-2 text-lg font-semibold"><ProductThumbnail imageUrl={selected.product?.image_url} name={selected.product?.name ?? "Produto"} size="sm" />{selected.product?.name ?? "Sem produto associado"}</h3></div><button type="button" onClick={() => setSelectedId(null)} aria-label="Fechar posição" className="rounded-lg border border-[var(--line)] px-3 py-1 text-sm">Fechar</button></div>
+          {isAdmin && mode === "replenishment" && assignmentPreview && <div className="flex items-center gap-3 rounded-xl bg-slate-50 p-3"><ProductThumbnail imageUrl={assignmentPreview.image_url} name={assignmentPreview.name} size="sm" /><span className="text-sm font-medium">{assignmentPreview.name}</span></div>}
 
           {selected.product_id && selected.product ? <>
             {isAdmin && mode === "replenishment" && <label className="block text-sm font-medium">Número da posição<input value={slotCode} onChange={(event) => setSlotCode(event.target.value)} maxLength={12} className="field" /></label>}
@@ -209,7 +212,7 @@ export function MachineSlotMap({
 
     {mode === "sale" && <div className="space-y-3 rounded-2xl border border-[var(--line)] bg-white p-5">
       <div className="flex flex-wrap items-center justify-between gap-3"><div><h3 className="font-semibold">Venda atual</h3><p className="text-sm text-[var(--muted)]">Escolha uma ou mais posições na fotografia.</p></div><label className="text-sm font-medium">Data<input type="date" value={saleDay} onChange={(event) => setSaleDay(event.target.value)} className="field" /></label></div>
-      {basket.length ? <ul className="space-y-2">{basket.map((line) => <li key={line.slot_id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-slate-50 p-3"><span className="text-sm"><strong>{line.selection_code}</strong> · {line.name} · {line.quantity} un.</span><span className="flex items-center gap-2"><strong className="text-sm">{euro.format(line.unit_price * line.quantity)}</strong><button type="button" onClick={() => setBasket((current) => current.filter((item) => item.slot_id !== line.slot_id))} aria-label={`Remover posição ${line.selection_code}`} className="rounded-lg border border-[var(--line)] px-2 py-1 text-sm">Remover</button></span></li>)}</ul> : <p className="rounded-xl bg-slate-50 p-4 text-sm text-[var(--muted)]">Ainda não adicionou produtos à venda.</p>}
+      {basket.length ? <ul className="space-y-2">{basket.map((line) => <li key={line.slot_id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-slate-50 p-3"><span className="flex items-center gap-2 text-sm"><ProductThumbnail imageUrl={line.image_url} name={line.name} size="xs" /><span><strong>{line.selection_code}</strong> · {line.name} · {line.quantity} un.</span></span><span className="flex items-center gap-2"><strong className="text-sm">{euro.format(line.unit_price * line.quantity)}</strong><button type="button" onClick={() => setBasket((current) => current.filter((item) => item.slot_id !== line.slot_id))} aria-label={`Remover posição ${line.selection_code}`} className="rounded-lg border border-[var(--line)] px-2 py-1 text-sm">Remover</button></span></li>)}</ul> : <p className="rounded-xl bg-slate-50 p-4 text-sm text-[var(--muted)]">Ainda não adicionou produtos à venda.</p>}
       <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--line)] pt-3"><p className="text-sm">Total estimado <strong className="ml-2 text-lg">{euro.format(basket.reduce((sum, line) => sum + line.unit_price * line.quantity, 0))}</strong></p><button type="button" disabled={pending || basket.length === 0} onClick={finishSale} className="rounded-xl bg-[var(--brand)] px-5 py-3 text-sm font-semibold text-white disabled:opacity-50">{pending ? "A registar…" : "Confirmar venda"}</button></div>
     </div>}
   </section>;
