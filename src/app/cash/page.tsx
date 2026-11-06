@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { PhaseTwoNav } from "@/components/phase-two-nav";
-import { CashClosureForm, CashOperationForm } from "@/features/cash/cash-forms";
+import { CashOperationForm } from "@/features/cash/cash-forms";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -13,42 +13,19 @@ export default async function CashPage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const [{ data: machines }, { data: operations, error: operationsError }, { data: closures, error: closuresError }] = await Promise.all([
+  const [{ data: machines }, { data: operations, error: operationsError }] = await Promise.all([
     supabase.from("machines").select("id,name").eq("status", "active").order("name"),
     supabase.from("cash_operations").select("id,machine_id,operation_date,operation_type,amount,notes,created_at,created_by,machines(name)").order("created_at", { ascending: false }).limit(50),
-    supabase.from("cash_closures").select("id,machine_id,cash_date,period_start_date,sales_total,collected_total,reinforcement_total,withdrawal_total,expected_cash,counted_cash,difference,notes,needs_review,created_at,created_by,machines(name)").order("cash_date", { ascending: false }).limit(30),
   ]);
 
   return <main className="mx-auto min-h-screen max-w-6xl px-5 py-8 sm:px-8">
-    <header className="mb-6"><p className="text-sm font-semibold tracking-wide text-[var(--brand)]">VENDING MANAGER</p><h1 className="mt-1 text-2xl font-semibold">Caixa</h1><p className="mt-1 text-sm text-[var(--muted)]">Regista apenas quando houver um movimento ou quando quiseres contar o dinheiro.</p></header>
+    <header className="mb-6"><p className="text-sm font-semibold tracking-wide text-[var(--brand)]">VENDING MANAGER</p><h1 className="mt-1 text-2xl font-semibold">Caixa</h1><p className="mt-1 text-sm text-[var(--muted)]">Regista apenas recolhas, reforços ou retiradas quando acontecerem.</p></header>
     <PhaseTwoNav />
 
     <section className="mt-7">
-      <h2 className="mb-2 text-lg font-semibold">Movimentos pontuais</h2>
-      <p className="mb-3 text-sm text-[var(--muted)]">Regista uma recolha, reforço ou retirada quando acontecer. Não há tarefas diárias.</p>
+      <h2 className="mb-2 text-lg font-semibold">Movimentos de caixa</h2>
+      <p className="mb-3 text-sm text-[var(--muted)]">Regista o valor que foi recolhido, acrescentado ou retirado da máquina.</p>
       {machines?.length ? <div className="grid items-start gap-4 xl:grid-cols-3">{machines.map((machine) => <article key={machine.id} className="min-w-0 rounded-2xl border border-[var(--line)] bg-slate-50 p-3 sm:p-4"><h3 className="mb-3 px-1 text-base font-semibold">{machine.name}</h3><CashOperationForm machine={machine} /></article>)}</div> : <p className="rounded-xl bg-amber-50 p-4 text-sm text-amber-900">Não há máquinas ativas para registar movimentos.</p>}
-    </section>
-
-    <section className="mt-8">
-      <h2 className="mb-3 text-lg font-semibold">Contagem de dinheiro (opcional)</h2>
-      <CashClosureForm machines={machines ?? []} />
-    </section>
-
-    <section className="mt-8">
-      <h2 className="mb-3 text-lg font-semibold">Contagens recentes</h2>
-      {closuresError ? <p className="rounded-xl bg-amber-50 p-4 text-sm text-amber-900">Não foi possível carregar as contagens. Confirme se a migration de contagens por intervalo foi aplicada.</p> : closures?.length ? <div className="space-y-3">{closures.map((close) => {
-        const periodStart = close.period_start_date ?? close.cash_date;
-        return <article key={close.id} className="rounded-2xl border border-[var(--line)] bg-white p-5">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div><h3 className="font-semibold">{close.machines?.[0]?.name ?? "Máquina"}</h3><p className="text-sm text-[var(--muted)]">Período: {dateFormat.format(new Date(`${periodStart}T12:00:00Z`))} – {dateFormat.format(new Date(`${close.cash_date}T12:00:00Z`))}</p></div>
-            <span className={`rounded-full px-2.5 py-1 text-xs ${close.difference === 0 ? "bg-emerald-50 text-emerald-800" : "bg-amber-50 text-amber-800"}`}>Diferença {euro.format(close.difference)}</span>
-          </div>
-          <p className="mt-1 text-xs text-[var(--muted)]">Contagem por utilizador {close.created_by.slice(0, 8)}</p>
-          <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4"><p>Vendas<strong className="mt-1 block">{euro.format(close.sales_total)}</strong></p><p>Dinheiro esperado<strong className="mt-1 block">{euro.format(close.expected_cash)}</strong></p><p>Dinheiro contado<strong className="mt-1 block">{euro.format(close.counted_cash)}</strong></p><p>Recolhido<strong className="mt-1 block">{euro.format(close.collected_total)}</strong></p></div>
-          {close.needs_review && <p className="mt-3 rounded-xl bg-amber-50 p-3 text-sm text-amber-900">Uma venda incluída neste período foi anulada depois da contagem. Reveja a diferença.</p>}
-          {close.notes && <p className="mt-3 text-sm text-slate-600">{close.notes}</p>}
-        </article>;
-      })}</div> : <p className="rounded-2xl border border-dashed border-[var(--line)] bg-white p-8 text-center text-sm text-[var(--muted)]">Ainda não há contagens registadas.</p>}
     </section>
 
     <section className="mt-8">

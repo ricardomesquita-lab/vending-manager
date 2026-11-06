@@ -31,17 +31,3 @@ export async function recordCashOperation(formData: FormData): Promise<string | 
   return null;
 }
 
-export async function closeCashDay(formData: FormData): Promise<string | null> {
-  const { supabase, error } = await verifyCashRole();
-  if (!supabase) return error;
-  const { error: rpcError } = await supabase.rpc("close_cash_day", {
-    p_machine_id: String(formData.get("machine_id") ?? ""),
-    p_cash_date: String(formData.get("cash_date") ?? ""),
-    p_counted_cash: Number(formData.get("counted_cash")),
-    p_notes: String(formData.get("notes") ?? "").trim(),
-  });
-  if (rpcError) return "A contagem não foi registada. Confirme se a data é posterior à última contagem dessa máquina.";
-  revalidatePath("/cash");
-  revalidatePath("/sales");
-  return null;
-}
