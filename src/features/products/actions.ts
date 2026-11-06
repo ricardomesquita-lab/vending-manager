@@ -13,7 +13,7 @@ async function uploadProductImage(supabase: Awaited<ReturnType<typeof createClie
   if (!supabase) return { error: "Configure a ligação ao Supabase antes de carregar fotos." };
   const path = `${userId}/${randomUUID()}.${extensions[file.type]}`;
   const { error } = await supabase.storage.from("product-images").upload(path, file, { contentType: file.type, cacheControl: "31536000", upsert: false });
-  if (error) return { error: "Não foi possível carregar a foto. Confirme se a migration de imagens foi aplicada." };
+  if (error) return { error: `Não foi possível carregar a foto. Detalhe: ${error.message}` };
   return { url: supabase.storage.from("product-images").getPublicUrl(path).data.publicUrl };
 }
 
@@ -51,7 +51,7 @@ export async function createProduct(formData: FormData): Promise<string | null> 
     warehouse_minimum: warehouseMinimum,
     machine_minimum: machineMinimum,
   });
-  if (error) return error.code === "23505" ? "Já existe um produto com esse código de barras." : "Não foi possível guardar o produto. Confirme os dados e a migration da Fase 2.";
+  if (error) return error.code === "23505" ? "Já existe um produto com esse código." : `Não foi possível guardar o produto. Detalhe: ${error.message}`;
   revalidatePath("/products");
   revalidatePath("/stock");
   revalidatePath("/sales");
@@ -89,7 +89,7 @@ export async function updateProduct(productId: string, formData: FormData): Prom
     machine_minimum: machineMinimum,
     active: formData.get("active") === "on",
   }).eq("id", productId);
-  if (error) return error.code === "23505" ? "Já existe outro produto com esse código ou código de barras." : "Não foi possível atualizar o produto.";
+  if (error) return error.code === "23505" ? "Já existe outro produto com esse código." : `Não foi possível atualizar o produto. Detalhe: ${error.message}`;
   revalidatePath("/products");
   revalidatePath("/purchases");
   revalidatePath("/stock");
