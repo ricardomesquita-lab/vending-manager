@@ -40,7 +40,7 @@ export async function closeCashDay(formData: FormData): Promise<string | null> {
     p_counted_cash: Number(formData.get("counted_cash")),
     p_notes: String(formData.get("notes") ?? "").trim(),
   });
-  if (rpcError) return "O fecho não foi registado. Confirme se já existe um fecho para essa máquina e data.";
+  if (rpcError) return "A contagem não foi registada. Confirme se a data é posterior à última contagem dessa máquina.";
   revalidatePath("/cash");
   revalidatePath("/sales");
   return null;
