@@ -160,12 +160,6 @@ export function MachineSlotMap({
       : "border-violet-200 bg-violet-100";
 
   return <section className="space-y-4">
-    <div className="grid gap-3 sm:grid-cols-3">
-      <article className="rounded-xl border border-[var(--line)] bg-white p-4"><p className="text-xs text-[var(--muted)]">Posições configuradas</p><p className="mt-1 text-xl font-semibold">{configured} <span className="text-sm font-normal text-[var(--muted)]">/ {positionCount}</span></p></article>
-      <article className="rounded-xl border border-[var(--line)] bg-white p-4"><p className="text-xs text-[var(--muted)]">Unidades na máquina</p><p className="mt-1 text-xl font-semibold">{totalQuantity}</p></article>
-      <article className="rounded-xl border border-[var(--line)] bg-white p-4"><p className="text-xs text-[var(--muted)]">Como usar</p><p className="mt-1 text-sm">{mode === "sale" ? "Um toque soma 1. Toque duas vezes rapidamente para reduzir o total em 1. Valide quando quiser." : "Toque numa posição para ver ou atualizar."}</p></article>
-    </div>
-
     <div className="grid items-start gap-4">
       <div className={`mx-auto w-full max-w-[660px] space-y-3 rounded-2xl border p-3 sm:p-5 ${machineBackground}`}>
         <div className="rounded-xl bg-slate-800 px-4 py-3 text-center text-sm font-semibold tracking-wide text-white">ESQUEMA DA MÁQUINA {machineCode === "M1" ? "CAFÉ" : machineCode === "M3" ? "PRETA" : "CASTANHA"}</div>
@@ -194,6 +188,11 @@ export function MachineSlotMap({
         <div className="rounded-lg bg-slate-800 px-4 py-3 text-center text-xs font-semibold text-white">RECOLHA DO PRODUTO</div>
       </div>
       {extraSlots.length > 0 && <p className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900">Há posições antigas fora desta numeração ({extraSlots.map((slot) => slot.selection_code).join(", ")}). Foram mantidas para não perder stock ou histórico.</p>}
+      <div className="grid gap-3 sm:grid-cols-3">
+        <article className="rounded-xl border border-[var(--line)] bg-white p-4"><p className="text-xs text-[var(--muted)]">Posições configuradas</p><p className="mt-1 text-xl font-semibold">{configured} <span className="text-sm font-normal text-[var(--muted)]">/ {positionCount}</span></p></article>
+        <article className="rounded-xl border border-[var(--line)] bg-white p-4"><p className="text-xs text-[var(--muted)]">Unidades na máquina</p><p className="mt-1 text-xl font-semibold">{totalQuantity}</p></article>
+        <article className="rounded-xl border border-[var(--line)] bg-white p-4"><p className="text-xs text-[var(--muted)]">Como usar</p><p className="mt-1 text-sm">{mode === "sale" ? "Um toque soma 1. Toque duas vezes rapidamente para reduzir o total em 1. Valide quando quiser." : "Toque numa posição para ver ou atualizar."}</p></article>
+      </div>
 
       {mode === "replenishment" && <aside className="space-y-4 rounded-2xl border border-[var(--line)] bg-white p-5">
         {!selected ? <div><h3 className="font-semibold">Escolha uma posição</h3><p className="mt-2 text-sm text-[var(--muted)]">Toque numa posição do esquema para ver o produto e atualizar o stock.</p><div className="mt-3 flex flex-wrap gap-2 text-xs"><span className="rounded-full bg-emerald-100 px-2.5 py-1 text-emerald-900">Verde: stock disponível</span><span className="rounded-full bg-amber-100 px-2.5 py-1 text-amber-900">Amarelo: pouco stock</span><span className="rounded-full bg-slate-200 px-2.5 py-1 text-slate-800">Cinzento: sem produto ou sem stock</span></div>{!slotsWithProducts.length && <p className="mt-3 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">As posições ainda não foram criadas. Aplique a migration de posições da máquina.</p>}</div> : <>
