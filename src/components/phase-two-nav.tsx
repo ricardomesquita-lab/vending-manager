@@ -6,15 +6,16 @@ import { usePathname } from "next/navigation";
 const primaryLinks = [
   ["/dashboard", "Painel"],
   ["/replenishments", "Máquinas"],
-  ["/expenses", "Despesas"],
-  ["/suppliers", "Fornecedores"],
 ] as const;
 
 const moreLinks = [
+  ["/expenses", "Despesas"],
+  ["/suppliers", "Fornecedores"],
   ["/products", "Produtos"],
   ["/purchases", "Compras"],
   ["/sales", "Histórico de vendas"],
   ["/stock", "Stocks"],
+  ["/reports", "Relatórios"],
 ] as const;
 
 export function PhaseTwoNav() {
