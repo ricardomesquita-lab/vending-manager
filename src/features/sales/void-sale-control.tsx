@@ -12,7 +12,7 @@ export function VoidSaleControl({ saleId }: { saleId: string }) {
   }}>
     <label className="min-w-56 flex-1 text-sm font-medium">Justificação da anulação<input name="reason" required minLength={3} maxLength={500} className="field" /></label>
     <button disabled={pending} className="rounded-xl border border-red-200 px-4 py-3 text-sm font-semibold text-red-700 disabled:opacity-50">{pending ? "A anular…" : "Anular venda"}</button>
-    <p className="w-full text-xs text-[var(--muted)]">Se o dinheiro já tiver sido devolvido, registe também uma retirada no módulo Caixa.</p>
+    <p className="w-full text-xs text-[var(--muted)]">Se o dinheiro já tiver sido devolvido, registe também uma retirada na página Reposições, em «Registar dinheiro da máquina».</p>
     {error && <p role="alert" className="w-full text-sm text-red-700">{error}</p>}
   </form>;
 }

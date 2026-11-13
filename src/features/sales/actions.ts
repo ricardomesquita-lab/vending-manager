@@ -22,6 +22,7 @@ export async function registerSale(formData: FormData): Promise<string | null> {
   });
   if (error) return error.code === "23514" ? "O stock disponível na máquina é insuficiente." : "A venda não foi registada. Confirme os dados e se o caixa desse dia já foi fechado.";
   revalidatePath("/sales");
+  revalidatePath("/replenishments");
   revalidatePath("/stock");
   revalidatePath("/cash");
   return null;
@@ -37,6 +38,7 @@ export async function voidSale(saleId: string, reason: string): Promise<string |
   const { error } = await supabase.rpc("void_sale", { p_sale_id: saleId, p_reason: reason.trim() });
   if (error) return "A venda não foi anulada. Confirme se ainda está ativa e indique uma justificação.";
   revalidatePath("/sales");
+  revalidatePath("/replenishments");
   revalidatePath("/stock");
   revalidatePath("/cash");
   return null;

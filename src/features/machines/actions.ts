@@ -53,6 +53,7 @@ export async function registerMachineSlotSale(formData: FormData): Promise<strin
   });
   if (error) return error.code === "23514" ? "O stock da posição selecionada é insuficiente." : "A venda não foi registada. Confirme as posições e se o caixa desse dia já foi fechado.";
   revalidatePath("/sales");
+  revalidatePath("/replenishments");
   revalidatePath("/stock");
   revalidatePath("/cash");
   return null;

@@ -13,9 +13,7 @@ const moreLinks = [
   ["/products", "Produtos"],
   ["/suppliers", "Fornecedores"],
   ["/purchases", "Compras"],
-  ["/cash", "Caixa"],
   ["/stock", "Stocks"],
-  ["/inventory", "Inventários"],
   ["/expenses", "Despesas"],
   ["/reports", "Relatórios"],
 ] as const;

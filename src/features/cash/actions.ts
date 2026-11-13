@@ -28,6 +28,7 @@ export async function recordCashOperation(formData: FormData): Promise<string | 
   });
   if (rpcError) return "A operação não foi registada. Confirme a data, máquina e valor.";
   revalidatePath("/cash");
+  revalidatePath("/replenishments");
   return null;
 }
 
