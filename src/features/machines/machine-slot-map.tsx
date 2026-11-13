@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { ProductThumbnail } from "@/components/product-thumbnail";
 import { registerMachineSlotSale, replenishMachineSlot, saveMachineSlot } from "@/features/machines/actions";
@@ -52,6 +52,7 @@ export function MachineSlotMap({
   const [slotCode, setSlotCode] = useState("");
   const [saleDay, setSaleDay] = useState(saleDate || localToday());
   const [basket, setBasket] = useState<BasketLine[]>([]);
+  const lastSaleTap = useRef<{ slotId: string; time: number } | null>(null);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [pending, startTransition] = useTransition();
@@ -90,9 +91,19 @@ export function MachineSlotMap({
     })(); });
   }
 
-  function addSaleTap(slot: (typeof slotsWithProducts)[number]) {
+  function addSaleTap(slot: (typeof slotsWithProducts)[number], tapTime: number) {
     if (!slot.product?.image_url || !slot.product_id) return;
     const currentLine = basket.find((line) => line.slot_id === slot.id);
+    const previousTap = lastSaleTap.current;
+    if (previousTap?.slotId === slot.id && tapTime - previousTap.time <= 350) {
+      lastSaleTap.current = null;
+      if (!currentLine) return;
+      setError("");
+      setBasket((current) => current.flatMap((line) => line.slot_id !== slot.id ? [line] : line.quantity > 1 ? [{ ...line, quantity: line.quantity - 1 }] : []));
+      setNotice(`Uma unidade retirada da posição ${slot.selection_code}.`);
+      return;
+    }
+    lastSaleTap.current = { slotId: slot.id, time: tapTime };
     const soldSoFar = currentLine?.quantity ?? 0;
     const warehouseQuantity = products.find((item) => item.id === slot.product_id)?.warehouse_quantity ?? 0;
     if (basket.some((line) => line.product_id === slot.product_id && line.slot_id !== slot.id)) { setError("Este produto aparece em mais de uma posição. Regista uma posição de cada vez."); return; }
@@ -152,7 +163,7 @@ export function MachineSlotMap({
     <div className="grid gap-3 sm:grid-cols-3">
       <article className="rounded-xl border border-[var(--line)] bg-white p-4"><p className="text-xs text-[var(--muted)]">Posições configuradas</p><p className="mt-1 text-xl font-semibold">{configured} <span className="text-sm font-normal text-[var(--muted)]">/ {positionCount}</span></p></article>
       <article className="rounded-xl border border-[var(--line)] bg-white p-4"><p className="text-xs text-[var(--muted)]">Unidades na máquina</p><p className="mt-1 text-xl font-semibold">{totalQuantity}</p></article>
-      <article className="rounded-xl border border-[var(--line)] bg-white p-4"><p className="text-xs text-[var(--muted)]">Como usar</p><p className="mt-1 text-sm">{mode === "sale" ? "Toque uma vez na foto por cada unidade vendida. Valide quando quiser." : "Toque numa posição para ver ou atualizar."}</p></article>
+      <article className="rounded-xl border border-[var(--line)] bg-white p-4"><p className="text-xs text-[var(--muted)]">Como usar</p><p className="mt-1 text-sm">{mode === "sale" ? "Um toque regista uma venda. Dois toques rápidos na mesma foto retiram uma unidade. Valide quando quiser." : "Toque numa posição para ver ou atualizar."}</p></article>
     </div>
 
     <div className="grid items-start gap-4">
@@ -171,7 +182,7 @@ export function MachineSlotMap({
           return <button
             key={slot?.id ?? `${rowIndex}-${code}`}
             type="button"
-            onClick={() => { if (!slot) return; if (mode === "sale") { addSaleTap(slot); return; } setSelectedId(slot.id); setProductId(slot.product_id ?? ""); setSlotCode(slot.selection_code); setCapacity(String(slot.capacity)); setQuantity("1"); setError(""); setNotice(""); }}
+            onClick={(event) => { if (!slot) return; if (mode === "sale") { addSaleTap(slot, event.timeStamp); return; } setSelectedId(slot.id); setProductId(slot.product_id ?? ""); setSlotCode(slot.selection_code); setCapacity(String(slot.capacity)); setQuantity("1"); setError(""); setNotice(""); }}
             disabled={!slot || (mode === "sale" && (!slot.active || !slot.product?.image_url))}
             aria-label={`Posição ${code}${slot?.product ? `, ${slot.product.name}, ${slot.quantity} unidades` : ", sem produto associado"}`}
             title={`${code}${slot?.product ? ` · ${slot.product.name} · ${slot.quantity} un.` : " · por configurar"}`}
@@ -213,7 +224,7 @@ export function MachineSlotMap({
     </div>
 
     {mode === "sale" && <div className="space-y-3 rounded-2xl border border-[var(--line)] bg-white p-5">
-      <div className="flex flex-wrap items-center justify-between gap-3"><div><h3 className="font-semibold">Vendas por validar</h3><p className="text-sm text-[var(--muted)]">Cada toque na foto regista uma unidade. Podes validar em qualquer momento.</p></div><label className="text-sm font-medium">Data<input type="date" value={saleDay} onChange={(event) => setSaleDay(event.target.value)} className="field" /></label></div>
+      <div className="flex flex-wrap items-center justify-between gap-3"><div><h3 className="font-semibold">Vendas por validar</h3><p className="text-sm text-[var(--muted)]">Um toque regista uma unidade. Dois toques rápidos na mesma foto retiram uma. Podes validar em qualquer momento.</p></div><label className="text-sm font-medium">Data<input type="date" value={saleDay} onChange={(event) => setSaleDay(event.target.value)} className="field" /></label></div>
       {basket.length ? <ul className="space-y-2">{basket.map((line) => <li key={line.slot_id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-slate-50 p-3"><span className="flex items-center gap-2 text-sm"><ProductThumbnail imageUrl={line.image_url} name={line.name} size="xs" /><span><strong>{line.selection_code}</strong> · {line.name} · {line.quantity} un.</span></span><strong className="text-sm">{euro.format(line.unit_price * line.quantity)}</strong></li>)}</ul> : <p className="rounded-xl bg-slate-50 p-4 text-sm text-[var(--muted)]">Ainda não registaste nenhuma venda. Toca na fotografia do produto na posição correspondente.</p>}
       {error && <p role="alert" className="rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</p>}
       {notice && !pending && <p role="status" className="rounded-xl bg-emerald-50 p-3 text-sm text-emerald-800">{notice}</p>}
