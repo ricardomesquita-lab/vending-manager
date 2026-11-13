@@ -162,7 +162,7 @@ export function MachineSlotMap({
   return <section className="space-y-4">
     <div className="grid items-start gap-4">
       <div className={`mx-auto w-full max-w-[660px] space-y-3 rounded-2xl border p-3 sm:p-5 ${machineBackground}`}>
-        <div className="rounded-xl bg-slate-800 px-4 py-3 text-center text-sm font-semibold tracking-wide text-white">ESQUEMA DA MÁQUINA {machineCode === "M1" ? "CAFÉ" : machineCode === "M3" ? "PRETA" : "CASTANHA"}</div>
+        <div className="rounded-xl bg-slate-800 px-4 py-3 text-center text-lg font-semibold tracking-wide text-white sm:text-xl">MÁQUINA {machineCode === "M1" ? "CAFÉ" : machineCode === "M3" ? "PRETA" : "CASTANHA"}</div>
         {shelfRows.map((row, rowIndex) => <div key={rowIndex} className="rounded-xl border-2 border-slate-300 bg-white p-2">
           <p className="mb-2 px-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500">Prateleira {rowIndex + 1}</p>
           <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${row.length}, minmax(0, 1fr))` }}>
