@@ -22,6 +22,6 @@ Nunca exponha uma chave `secret`/`service_role` no navegador nem a inclua no rep
 
 A Fase 1 inclui a base de autenticação, perfis, políticas RLS e as três máquinas de demonstração. As Fases 2 e 3 incluem migrations e ecrãs para produtos, fornecedores, compras, stocks, reposições, inventários, vendas e caixa. A Fase 4 acrescenta despesas administrativas, indicadores financeiros, rentabilidade por máquina e produto, dashboard e relatórios com exportação `.xlsx`. A Fase 5 acrescenta PWA, suporte mobile, cabeçalhos de segurança, verificações automatizadas e procedimentos de cópia/restauro. Não são criados produtos, fornecedores, despesas, vendas ou compras fictícios.
 
-Aplicar todas as migrations de `supabase/migrations` por ordem antes de usar os módulos correspondentes. A migration mais recente acrescenta o código de fornecedor: `202611030006_supplier_code.sql`.
+Aplicar todas as migrations de `supabase/migrations` por ordem antes de usar os módulos correspondentes. A migration mais recente `202611130001_auto_replenishment_after_sale.sql` acrescenta a reposição automática depois de cada venda.
 
 Execute `pnpm test`, `pnpm lint`, `pnpm typecheck` e `pnpm build` antes da publicação. Consulte `TESTS.md` e `DEPLOYMENT.md` para validação com Supabase, cópias de segurança e restauro.

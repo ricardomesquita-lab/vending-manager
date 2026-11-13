@@ -29,7 +29,7 @@ export default async function ReplenishmentsPage() {
   const slotOptions = (machineSlots ?? []).map((slot) => ({ ...slot, product: slot.products?.[0] ?? null, price: slot.product_id ? priceOverrides.get(`${slot.machine_id}:${slot.product_id}`) ?? null : null }));
 
   return <main className="mx-auto min-h-screen max-w-6xl px-5 py-8 sm:px-8">
-    <header className="mb-6"><p className="text-sm font-semibold tracking-wide text-[var(--brand)]">VENDING MANAGER</p><h1 className="mt-1 text-2xl font-semibold">Reposições e vendas</h1><p className="mt-1 text-sm text-[var(--muted)]">Regista reposições, vendas e retiradas de dinheiro numa só página.</p></header>
+    <header className="mb-6"><p className="text-sm font-semibold tracking-wide text-[var(--brand)]">VENDING MANAGER</p><h1 className="mt-1 text-2xl font-semibold">Máquinas</h1><p className="mt-1 text-sm text-[var(--muted)]">Regista vendas, reposições e retiradas de dinheiro no esquema de cada máquina.</p></header>
     <PhaseTwoNav />
     <section className="mt-7"><h2 className="mb-3 text-lg font-semibold">Nova reposição</h2><ReplenishmentForm machines={machines ?? []} slotProducts={slotProducts} slots={slotOptions} isAdmin={profile?.role === "administrator"} /></section>
     <section className="mt-8">

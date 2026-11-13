@@ -54,3 +54,5 @@ O dashboard apresenta o dia e mês correntes. A página Relatórios permite sele
 ## Código de fornecedor
 
 A migration `202611030006_supplier_code.sql` acrescenta um código único (sem diferenciar maiúsculas/minúsculas) para cada fornecedor. O campo é anulável para preservar os fornecedores já criados; a interface permite preencher o código em falta e exige nome e código para novos fornecedores. As colunas anteriores de NIF, contactos, morada e observações ficam intactas na base de dados, mas deixam de aparecer nos ecrãs.
+
+A migration `202611130001_auto_replenishment_after_sale.sql` acrescenta o registo atómico de venda com reposição automática da mesma quantidade a partir do armazém. Se faltar stock na máquina ou no armazém, a operação inteira é cancelada. A anulação da venda também reverte a reposição automática e devolve as unidades ao armazém.

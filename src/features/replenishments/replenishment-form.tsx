@@ -17,7 +17,7 @@ export function ReplenishmentForm({ machines, slotProducts, slots, isAdmin }: { 
     <p className="text-sm text-[var(--muted)]">Regista a reposição ou a venda sem sair desta página. As três máquinas estão visíveis ao mesmo tempo.</p>
     <div className="flex flex-wrap gap-2" role="group" aria-label="Operação nas máquinas">
       <button type="button" aria-pressed={mode === "replenishment"} onClick={() => setMode("replenishment")} className={`rounded-full border px-4 py-2 text-sm font-medium ${mode === "replenishment" ? "border-emerald-300 bg-emerald-100 text-emerald-900" : "border-[var(--line)] bg-white text-slate-700"}`}>Repor produtos</button>
-      <button type="button" aria-pressed={mode === "sale"} onClick={() => setMode("sale")} className={`rounded-full border px-4 py-2 text-sm font-medium ${mode === "sale" ? "border-emerald-300 bg-emerald-100 text-emerald-900" : "border-[var(--line)] bg-white text-slate-700"}`}>Registar vendas</button>
+      <button id="operacoes-venda" type="button" aria-pressed={mode === "sale"} onClick={() => setMode("sale")} className={`rounded-full border px-4 py-2 text-sm font-medium ${mode === "sale" ? "border-emerald-300 bg-emerald-100 text-emerald-900" : "border-[var(--line)] bg-white text-slate-700"}`}>Registar vendas</button>
     </div>
     <div className="grid items-start gap-4 xl:grid-cols-3">
       {supportedMachines.map((machine) => <article key={machine.id} className={`min-w-0 rounded-2xl border p-3 sm:p-4 ${machinePanelClasses(machine.code)}`}>

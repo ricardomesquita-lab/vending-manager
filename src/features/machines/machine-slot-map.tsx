@@ -91,6 +91,7 @@ export function MachineSlotMap({
     if (!selected?.product || !selected.product_id) return;
     const amount = Number(quantity);
     if (!Number.isInteger(amount) || amount < 1 || amount > selected.quantity) { setError("A quantidade ultrapassa o stock desta posição."); return; }
+    if (amount > availableToRefill) { setError("O stock do armazém não permite repor esta quantidade depois da venda."); return; }
     if (basket.some((line) => line.product_id === selected.product_id && line.slot_id !== selected.id)) { setError("Escolha apenas uma posição por produto na mesma venda."); return; }
     setError("");
     setBasket((current) => {
@@ -108,7 +109,7 @@ export function MachineSlotMap({
       sale_date: saleDay,
       request_key: crypto.randomUUID(),
       lines_json: JSON.stringify(basket.map(({ slot_id, quantity }) => ({ slot_id, quantity }))),
-    }, "Venda registada.");
+    }, "Venda registada e quantidade reposta automaticamente.");
   }
 
   function refill() {
@@ -187,6 +188,7 @@ export function MachineSlotMap({
             {mode === "sale" ? <>
               <label className="block text-sm font-medium">Quantidade a vender<input type="number" min="1" max={selected.quantity} step="1" value={quantity} onChange={(event) => setQuantity(event.target.value)} className="field" /></label>
               <p className="text-sm text-[var(--muted)]">Preço por unidade <strong className="text-[var(--foreground)]">{euro.format(selected.price ?? selected.product.sale_price_gross)}</strong></p>
+              <p className="text-sm text-[var(--muted)]">Stock no armazém para reposição automática: <strong className="text-[var(--foreground)]">{availableToRefill} un.</strong></p>
               <button type="button" disabled={pending || selected.quantity === 0} onClick={addToBasket} className="w-full rounded-xl border border-[var(--line)] px-4 py-3 text-sm font-semibold disabled:opacity-50">Adicionar à venda</button>
             </> : <>
               <p className="text-sm text-[var(--muted)]">Stock no armazém: <strong className="text-[var(--foreground)]">{availableToRefill} un.</strong></p>

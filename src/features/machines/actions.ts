@@ -45,13 +45,13 @@ export async function registerMachineSlotSale(formData: FormData): Promise<strin
   try { lines = JSON.parse(String(formData.get("lines_json") ?? "")); }
   catch { return "A lista de posições da venda é inválida."; }
   if (!Array.isArray(lines) || lines.length === 0 || lines.length > 35) return "Escolha pelo menos uma posição.";
-  const { error } = await supabase.rpc("register_machine_slot_sale", {
+  const { error } = await supabase.rpc("register_machine_slot_sale_and_replenish", {
     p_machine_id: String(formData.get("machine_id") ?? ""),
     p_sale_date: String(formData.get("sale_date") ?? ""),
     p_lines: lines,
     p_request_key: String(formData.get("request_key") ?? ""),
   });
-  if (error) return error.code === "23514" ? "O stock da posição selecionada é insuficiente." : "A venda não foi registada. Confirme as posições e se o caixa desse dia já foi fechado.";
+  if (error) return error.code === "23514" ? "Stock insuficiente na máquina ou no armazém. A venda não foi registada." : "A venda não foi registada. Confirme as posições e se o caixa desse dia já foi fechado.";
   revalidatePath("/sales");
   revalidatePath("/replenishments");
   revalidatePath("/stock");

@@ -5,17 +5,16 @@ import { usePathname } from "next/navigation";
 
 const primaryLinks = [
   ["/dashboard", "Painel"],
-  ["/sales", "Vendas"],
-  ["/replenishments", "Reposições"],
+  ["/replenishments", "Máquinas"],
+  ["/expenses", "Despesas"],
+  ["/suppliers", "Fornecedores"],
 ] as const;
 
 const moreLinks = [
   ["/products", "Produtos"],
-  ["/suppliers", "Fornecedores"],
   ["/purchases", "Compras"],
+  ["/sales", "Histórico de vendas"],
   ["/stock", "Stocks"],
-  ["/expenses", "Despesas"],
-  ["/reports", "Relatórios"],
 ] as const;
 
 export function PhaseTwoNav() {
